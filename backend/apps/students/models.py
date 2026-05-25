@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from apps.core.models import CollegeScopedModel
+from apps.core.models import CollegeScopedModel, TimeStampedModel
 
 
 class Student(CollegeScopedModel):
@@ -145,3 +145,179 @@ class StudentDocument(CollegeScopedModel):
 
     def __str__(self):
         return f'{self.student.enrollment_number} - {self.document_type}'
+
+
+class StudentSemesterRecord(TimeStampedModel):
+    STATUS_CHOICES = [
+        ('ongoing', 'Ongoing'),
+        ('passed', 'Passed'),
+        ('failed', 'Failed'),
+        ('detained', 'Detained'),
+        ('backlog', 'Backlog'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='semester_records',
+    )
+    semester_number = models.PositiveSmallIntegerField()
+    academic_year_label = models.CharField(max_length=20, help_text="e.g. 2024-25")
+    sgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    total_credits_earned = models.PositiveIntegerField(default=0)
+    attendance_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
+    promoted_to_next = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'student_semester_records'
+        unique_together = ['student', 'semester_number', 'academic_year_label']
+        ordering = ['student', 'semester_number']
+        indexes = [models.Index(fields=['student', 'status'])]
+
+    def __str__(self):
+        return f"{self.student.enrollment_number} | Sem {self.semester_number} | {self.status}"
+
+
+class StudentDocumentVerification(TimeStampedModel):
+    DOC_TYPE_CHOICES = [
+        ('photo', 'Photo'),
+        ('aadhaar', 'Aadhaar Card'),
+        ('ssc_marksheet', 'SSC Marksheet'),
+        ('hsc_marksheet', 'HSC Marksheet'),
+        ('caste_cert', 'Caste Certificate'),
+        ('income_cert', 'Income Certificate'),
+        ('domicile', 'Domicile Certificate'),
+        ('transfer_cert', 'Transfer Certificate'),
+        ('migration_cert', 'Migration Certificate'),
+        ('gap_cert', 'Gap Certificate'),
+        ('medical_cert', 'Medical Certificate'),
+        ('disability_cert', 'Disability Certificate'),
+        ('diploma_marksheet', 'Diploma Marksheet'),
+        ('graduation_marksheet', 'Graduation Marksheet'),
+    ]
+    VERIFY_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+        ('re_upload_requested', 'Re-Upload Requested'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='document_verifications',
+    )
+    document_type = models.CharField(max_length=30, choices=DOC_TYPE_CHOICES)
+    status = models.CharField(
+        max_length=25, choices=VERIFY_STATUS_CHOICES, default='pending', db_index=True
+    )
+    verified_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='verified_documents',
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    remarks = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'student_document_verifications'
+        unique_together = ['student', 'document_type']
+        ordering = ['student', 'document_type']
+
+    def __str__(self):
+        return f"{self.student.enrollment_number} | {self.document_type} | {self.status}"
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ADDITIONAL STUDENT MODELS — Section 5
+# ═══════════════════════════════════════════════════════════════════
+
+class StudentSemesterRecord(TimeStampedModel):
+    STATUS_CHOICES = [
+        ('ongoing', 'Ongoing'),
+        ('passed', 'Passed'),
+        ('failed', 'Failed'),
+        ('detained', 'Detained'),
+        ('backlog', 'Backlog'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='semester_records',
+    )
+    semester_number = models.PositiveSmallIntegerField()
+    academic_year_label = models.CharField(max_length=20, help_text="e.g. 2024-25")
+    sgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    total_credits_earned = models.PositiveIntegerField(default=0)
+    attendance_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
+    promoted_to_next = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'student_semester_records'
+        unique_together = ['student', 'semester_number', 'academic_year_label']
+        ordering = ['student', 'semester_number']
+        indexes = [models.Index(fields=['student', 'status'])]
+
+    def __str__(self):
+        return f"{self.student.enrollment_number} | Sem {self.semester_number} | {self.status}"
+
+
+class StudentDocumentVerification(TimeStampedModel):
+    DOC_TYPE_CHOICES = [
+        ('photo', 'Photo'),
+        ('aadhaar', 'Aadhaar Card'),
+        ('ssc_marksheet', 'SSC Marksheet'),
+        ('hsc_marksheet', 'HSC Marksheet'),
+        ('caste_cert', 'Caste Certificate'),
+        ('income_cert', 'Income Certificate'),
+        ('domicile', 'Domicile Certificate'),
+        ('transfer_cert', 'Transfer Certificate'),
+        ('migration_cert', 'Migration Certificate'),
+        ('gap_cert', 'Gap Certificate'),
+        ('medical_cert', 'Medical Certificate'),
+        ('disability_cert', 'Disability Certificate'),
+        ('diploma_marksheet', 'Diploma Marksheet'),
+        ('graduation_marksheet', 'Graduation Marksheet'),
+    ]
+    VERIFY_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+        ('re_upload_requested', 'Re-Upload Requested'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='document_verifications',
+    )
+    document_type = models.CharField(max_length=30, choices=DOC_TYPE_CHOICES)
+    status = models.CharField(
+        max_length=25, choices=VERIFY_STATUS_CHOICES, default='pending', db_index=True
+    )
+    verified_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='verified_documents',
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    remarks = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'student_document_verifications'
+        unique_together = ['student', 'document_type']
+        ordering = ['student', 'document_type']
+
+    def __str__(self):
+        return f"{self.student.enrollment_number} | {self.document_type} | {self.status}"
