@@ -8,7 +8,7 @@ import {
   logout as authLogout,
   verify2FA,
 } from "@/lib/auth";
-import { clearMemoryAccessToken } from "@/lib/api/auth-token";
+import { clearMemoryAccessToken, setMemoryAccessToken } from "@/lib/api/auth-token";
 import type { AuthUser } from "@/types";
 
 interface AuthState {
@@ -119,6 +119,20 @@ export const useAuthStore = create<AuthState>()(
         if (!user) {
           get().clearAuth();
           return false;
+        }
+        try {
+          const boot = await fetch("/api/auth/bootstrap", {
+            method: "POST",
+            credentials: "include",
+          });
+          if (boot.ok) {
+            const body = (await boot.json()) as { access?: string };
+            if (body.access) {
+              setMemoryAccessToken(body.access);
+            }
+          }
+        } catch {
+          /* ignore */
         }
         set({ user, isAuthenticated: true, isLoading: false });
         return true;

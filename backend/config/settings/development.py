@@ -4,10 +4,22 @@ from .base import *
 
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
-CORS_ALLOW_ALL_ORIGINS = False
+# Dev: allow any frontend origin (3000, 3002, etc.) to avoid CORS blocks during local work.
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002',
     'http://localhost:8081',
+]
+# Allow any local dev port (3000, 3002, etc.) without editing CORS on every port change.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^http://localhost:\d+$',
+    r'^http://127\.0\.0\.1:\d+$',
 ]
 
 # Debug toolbar

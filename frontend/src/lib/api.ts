@@ -2,8 +2,16 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { clearMemoryAccessToken, getMemoryAccessToken, setMemoryAccessToken } from "@/lib/api/auth-token";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:8000/api/v1";
+/** Browser hits Django directly; CORS allows any localhost dev port via regex in development.py */
+function resolveApiBase(): string {
+  return (
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
+    process.env.API_ORIGIN?.replace(/\/$/, "") ??
+    "http://localhost:8000/api/v1"
+  );
+}
+
+const API_BASE = resolveApiBase();
 
 export type ApiEnvelope<T = unknown> = {
   success: boolean;
@@ -20,8 +28,25 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = getMemoryAccessToken();
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  let token = getMemoryAccessToken();
+  if (!token && typeof window !== "undefined") {
+    try {
+      const boot = await fetch(`${window.location.origin}/api/auth/bootstrap`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (boot.ok) {
+        const body = (await boot.json()) as { access?: string };
+        if (body.access) {
+          setMemoryAccessToken(body.access);
+          token = body.access;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -72,8 +97,13 @@ api.interceptors.response.use(
 
 export function getApiErrorMessage(error: unknown, fallback = "Something went wrong."): string {
   if (axios.isAxiosError(error)) {
+    if (error.code === "ERR_NETWORK") {
+      return "Cannot reach the API server. Ensure Django is running on port 8000 and CORS is enabled for your frontend port.";
+    }
     const data = error.response?.data as ApiEnvelope | undefined;
     if (data?.message) return data.message;
+    if (error.response?.status === 401) return "Session expired. Please sign in again.";
+    if (error.response?.status === 403) return "You do not have permission to perform this action.";
   }
   if (error instanceof Error) return error.message;
   return fallback;

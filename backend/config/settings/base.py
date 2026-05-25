@@ -49,6 +49,8 @@ LOCAL_APPS = [
     'apps.core',
     'apps.authentication',
     'apps.users',
+    'apps.institutions',
+    'apps.academic',
     'apps.accounts',
     'apps.colleges',
     'apps.students',

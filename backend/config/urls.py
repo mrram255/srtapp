@@ -13,6 +13,8 @@ urlpatterns = [
     path('api/v1/', api_v1_root, name='api_v1_root'),
     path('api/v1/auth/', include('apps.authentication.urls')),
     path('api/v1/', include('apps.users.urls')),
+    path('api/v1/', include('apps.institutions.urls')),
+    path('api/v1/', include('apps.academic.urls')),
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/colleges/', include('apps.colleges.urls')),
     path('api/v1/students/', include('apps.students.urls')),

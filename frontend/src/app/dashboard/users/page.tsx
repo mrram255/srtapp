@@ -31,7 +31,9 @@ export default function UsersPage() {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (roleFilter) params.set("role", roleFilter);
-      const response = await api.get<ApiEnvelope<UserRow[]>>(`/users/?${params.toString()}`);
+      const qs = params.toString();
+      const path = qs ? `/users/?${qs}` : "/users/";
+      const response = await api.get<ApiEnvelope<UserRow[]>>(path);
       setUsers(response.data.data ?? []);
     } catch (err) {
       setError(getApiErrorMessage(err, "Failed to load users."));

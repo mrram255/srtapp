@@ -50,6 +50,8 @@ const navItems: NavItem[] = [
   { label: "Settings", href: "/dashboard/settings", icon: <Settings className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN"] },
   { label: "Users", href: "/dashboard/users", icon: <Users className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
   { label: "Roles", href: "/dashboard/roles", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Institution", href: "/dashboard/institution", icon: <School className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Academic Config", href: "/dashboard/academic", icon: <CalendarDays className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
 ];
 
 export function Sidebar() {
