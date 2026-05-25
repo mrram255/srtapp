@@ -54,6 +54,7 @@ LOCAL_APPS = [
     'apps.accounts',
     'apps.colleges',
     'apps.students',
+    'apps.staff',
     'apps.teachers',
     'apps.academics',
     'apps.attendance',

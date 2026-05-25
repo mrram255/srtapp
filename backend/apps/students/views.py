@@ -557,3 +557,124 @@ class StudentSignatureUploadView(BaseAPIView):
             data={'signature': saved_path},
             message='Signature uploaded successfully.',
         )
+
+
+# ════════════════════════════════════════════════════════
+# SECTION 5 — New Views
+# ════════════════════════════════════════════════════════
+from django.utils import timezone as tz
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .models import StudentSemesterRecord, StudentDocumentVerification
+from .serializers import (
+    StudentSemesterRecordSerializer,
+    StudentDocumentVerificationSerializer,
+)
+
+
+class StudentSemesterRecordsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            from .models import Student
+            student = Student.objects.get(pk=pk)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found.'}, status=404)
+        records = student.semester_records.order_by('semester_number')
+        serializer = StudentSemesterRecordSerializer(records, many=True)
+        return Response(serializer.data)
+
+
+class StudentPromoteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            from .models import Student
+            student = Student.objects.get(pk=pk)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found.'}, status=404)
+
+        current_sem = student.current_semester
+        if current_sem >= 8:
+            return Response(
+                {'error': 'Student already at final semester.'},
+                status=400,
+            )
+        StudentSemesterRecord.objects.filter(
+            student=student, semester_number=current_sem
+        ).update(promoted_to_next=True, status='passed')
+
+        student.current_semester = current_sem + 1
+        student.save(update_fields=['current_semester', 'updated_at'])
+        return Response({'message': f'Promoted to semester {student.current_semester}'})
+
+
+class StudentDocumentVerificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            from .models import Student
+            student = Student.objects.get(pk=pk)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found.'}, status=404)
+        verifications = student.document_verifications.select_related('verified_by')
+        serializer = StudentDocumentVerificationSerializer(verifications, many=True)
+        return Response(serializer.data)
+
+
+class StudentDocumentVerifyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            from .models import Student
+            student = Student.objects.get(pk=pk)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found.'}, status=404)
+
+        doc_type = request.data.get('document_type')
+        new_status = request.data.get('status')
+        remarks = request.data.get('remarks', '')
+
+        if not doc_type or not new_status:
+            return Response(
+                {'error': 'document_type and status are required.'},
+                status=400,
+            )
+        obj, _ = StudentDocumentVerification.objects.get_or_create(
+            student=student, document_type=doc_type
+        )
+        obj.status = new_status
+        obj.remarks = remarks
+        obj.verified_by = request.user
+        obj.verified_at = tz.now()
+        obj.save()
+        return Response(StudentDocumentVerificationSerializer(obj).data)
+
+
+class StudentStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.db.models import Count
+        from .models import Student
+        college_id = request.query_params.get('college')
+        qs = Student.objects.filter(is_active=True)
+        if college_id:
+            qs = qs.filter(college_id=college_id)
+        return Response({
+            'total': qs.count(),
+            'by_status': dict(
+                qs.values_list('status').annotate(c=Count('id')).values_list('status', 'c')
+            ),
+            'by_category': dict(
+                qs.values_list('category').annotate(c=Count('id')).values_list('category', 'c')
+            ),
+            'by_admission_type': dict(
+                qs.values_list('admission_type')
+                  .annotate(c=Count('id')).values_list('admission_type', 'c')
+            ),
+        })

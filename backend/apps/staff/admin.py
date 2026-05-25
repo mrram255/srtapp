@@ -4,7 +4,7 @@ from .models import Designation, Staff, StaffServiceBook
 
 @admin.register(Designation)
 class DesignationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'level', 'college', 'is_active']
+    list_display = ['name', 'category', 'level', 'college']
     list_filter = ['category', 'college']
     search_fields = ['name']
 

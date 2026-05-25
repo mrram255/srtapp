@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Student, StudentDocument
+from .models import Student, StudentDocument, StudentSemesterRecord, StudentDocumentVerification
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -189,3 +189,31 @@ class StudentDashboardSerializer(serializers.Serializer):
     upcoming_exams = serializers.IntegerField()
     fee_status = serializers.CharField()
     recent_notifications = serializers.ListField()
+
+
+class StudentSemesterRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentSemesterRecord
+        fields = [
+            'id', 'student', 'semester_number', 'academic_year_label',
+            'sgpa', 'cgpa', 'total_credits_earned',
+            'attendance_percentage', 'status', 'promoted_to_next',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class StudentDocumentVerificationSerializer(serializers.ModelSerializer):
+    verified_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StudentDocumentVerification
+        fields = [
+            'id', 'student', 'document_type', 'status',
+            'verified_by', 'verified_by_name', 'verified_at',
+            'remarks', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'verified_by_name']
+
+    def get_verified_by_name(self, obj):
+        return obj.verified_by.get_full_name() if obj.verified_by else None

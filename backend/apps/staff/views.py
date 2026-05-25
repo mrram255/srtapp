@@ -15,7 +15,7 @@ from .serializers import (
 
 
 class DesignationViewSet(viewsets.ModelViewSet):
-    queryset = Designation.objects.filter(is_active=True).select_related('college')
+    queryset = Designation.objects.filter(is_deleted=False).select_related('college')
     serializer_class = DesignationSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -40,7 +40,7 @@ class StaffViewSet(viewsets.ModelViewSet):
         return (
             Staff.objects
             .select_related('user', 'designation', 'department', 'college')
-            .filter(is_active=True)
+            .filter(is_deleted=False)
         )
 
     def get_serializer_class(self):
@@ -69,7 +69,7 @@ class StaffViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='statistics')
     def statistics(self, request):
         college_id = request.query_params.get('college')
-        qs = Staff.objects.filter(is_active=True)
+        qs = Staff.objects.filter(is_deleted=False)
         if college_id:
             qs = qs.filter(college_id=college_id)
 
@@ -100,7 +100,7 @@ class StaffViewSet(viewsets.ModelViewSet):
     def qualification_summary(self, request):
         """NAAC data: PhD %, NET/SET %."""
         college_id = request.query_params.get('college')
-        qs = Staff.objects.filter(is_active=True, staff_type='teaching')
+        qs = Staff.objects.filter(is_deleted=False, staff_type='teaching')
         if college_id:
             qs = qs.filter(college_id=college_id)
 
