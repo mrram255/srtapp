@@ -48,6 +48,8 @@ const navItems: NavItem[] = [
   { label: "Gate Log", href: "/dashboard/gate", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN","SECURITY"] },
   { label: "ID Card", href: "/dashboard/id-card", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN","HOD","TEACHER","STUDENT"] },
   { label: "Settings", href: "/dashboard/settings", icon: <Settings className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN"] },
+  { label: "Users", href: "/dashboard/users", icon: <Users className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Roles", href: "/dashboard/roles", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
 ];
 
 export function Sidebar() {

@@ -30,3 +30,4 @@ qrcode==8.2
 reportlab==4.5.1
 openpyxl>=3.1
 meilisearch>=0.31
+django-filter>=24.3

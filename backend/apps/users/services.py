@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 from openpyxl import Workbook, load_workbook
 
-from apps.core.utils import encrypt_field, generate_employee_id, hash_password, validate_aadhaar
+from apps.core.utils import encrypt_field, generate_employee_id, validate_aadhaar
 from apps.users.models import ModulePermission, Role, RolePermission, UserActivity
 
 User = get_user_model()

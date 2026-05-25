@@ -76,6 +76,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter a valid phone number.')],
     )
     role = models.CharField(max_length=50, db_index=True)
+    employee_id = models.CharField(max_length=50, unique=True, null=True, blank=True, db_index=True)
     role_ref = models.ForeignKey(
         'users.Role',
         on_delete=models.SET_NULL,

@@ -128,3 +128,46 @@ def mask_aadhaar(aadhaar: str) -> str:
     if len(digits) != 12:
         raise ValidationError('Aadhaar number must contain 12 digits.')
     return f'XXXX-XXXX-{digits[-4:]}'
+
+
+def validate_aadhaar(aadhaar: str) -> None:
+    """Validate Aadhaar format (12 digits)."""
+    digits = re.sub(r'\D', '', aadhaar or '')
+    if len(digits) != 12:
+        raise ValidationError('Aadhaar number must contain 12 digits.')
+
+
+def encrypt_field(value: str) -> str:
+    """Encrypt sensitive field values at rest."""
+    if not value:
+        return value
+    from django.conf import settings
+    from cryptography.fernet import Fernet
+    import base64
+    import hashlib
+
+    key_material = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
+    fernet_key = base64.urlsafe_b64encode(key_material)
+    return Fernet(fernet_key).encrypt(value.encode()).decode()
+
+
+def decrypt_field(value: str) -> str:
+    """Decrypt values encrypted with encrypt_field."""
+    if not value:
+        return value
+    from django.conf import settings
+    from cryptography.fernet import Fernet, InvalidToken
+    import base64
+    import hashlib
+
+    key_material = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
+    fernet_key = base64.urlsafe_b64encode(key_material)
+    try:
+        return Fernet(fernet_key).decrypt(value.encode()).decode()
+    except InvalidToken:
+        return value
+
+
+def generate_employee_id() -> str:
+    """Generate a unique employee identifier."""
+    return generate_unique_code('EMP', length=6)

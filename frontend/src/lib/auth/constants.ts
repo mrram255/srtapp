@@ -29,6 +29,8 @@ export const DASHBOARD_SEGMENT_ROLES: Record<string, readonly Role[]> = {
   "id-card": ["SUPER_ADMIN", "ADMIN", "HOD", "STUDENT"],
   notifications: ["SUPER_ADMIN", "ADMIN", "HOD", "TEACHER", "STUDENT", "PARENT", "ACCOUNTANT", "LIBRARIAN", "SECURITY"],
   settings: ["SUPER_ADMIN", "ADMIN", "HOD", "TEACHER", "STUDENT", "PARENT", "ACCOUNTANT", "LIBRARIAN", "SECURITY"],
+  users: ["SUPER_ADMIN"],
+  roles: ["SUPER_ADMIN"],
   assignments: ["SUPER_ADMIN", "ADMIN", "HOD", "TEACHER", "STUDENT"],
   "study-materials": ["SUPER_ADMIN", "ADMIN", "HOD", "TEACHER", "STUDENT"],
   analytics: ["SUPER_ADMIN", "ADMIN", "HOD", "TEACHER", "STUDENT", "PARENT", "ACCOUNTANT", "LIBRARIAN"],
