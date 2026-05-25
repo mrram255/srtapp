@@ -1,40 +1,47 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
-
 import { useRouter } from "next/navigation";
-
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
   const hydrate = useAuthStore((s) => s.hydrate);
-  const [phase, setPhase] = useState<"checking" | "anon" | "authed">("checking");
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // If zustand already has persisted user (from localStorage), show immediately
+  const [phase, setPhase] = useState<"checking" | "anon" | "authed">(
+    isAuthenticated && user ? "authed" : "checking"
+  );
   const startedRef = useRef(false);
 
   useEffect(() => {
+    // Already authed from persisted store — still hydrate in background to refresh token
+    if (isAuthenticated && user && phase === "authed") {
+      void hydrate(); // background refresh, no spinner
+      return;
+    }
+
     if (startedRef.current) return;
     startedRef.current = true;
-
     let cancelled = false;
+
     void (async () => {
       const ok = await hydrate();
       if (cancelled) return;
-      setPhase(ok ? "authed" : "anon");
-      if (!ok) {
+      if (ok) {
+        setPhase("authed");
+      } else {
+        setPhase("anon");
         router.replace("/login?reason=session");
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (phase === "checking") {
@@ -48,9 +55,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (phase !== "authed") {
-    return null;
-  }
+  if (phase !== "authed") return null;
 
   return <DashboardShell>{children}</DashboardShell>;
 }
