@@ -1,23 +1,37 @@
 {
   "expo": {
-    "name": "SRT App",
-    "slug": "srtapp",
-    "version": "1.0.0",
-    "updates": {
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/your-project-id"
+    "name": "SRT College",
+    "slug": "srtapp-mobile",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1A2E"
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "android": {
-      "package": "com.kiji.srtapp"
-    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "bundleIdentifier": "com.kiji.srtapp"
-    }
+      "supportsTablet": true,
+      "bundleIdentifier": "com.srtapp.mobile",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Authenticate with Face ID to sign in to SRT College, Dhamri."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A1A2E"
+      },
+      "package": "com.srtapp.mobile",
+      "usesCleartextTraffic": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router", "expo-secure-store", "expo-notifications"],
+    "scheme": "srtapp"
   }
 }

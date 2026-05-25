@@ -1,25 +1,57 @@
 {
-  "name": "mobile",
-  "version": "1.0.0",
-  "main": "index.ts",
+  "name": "srtapp-mobile",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web"
+    "start": "node ./scripts/dev-server-host.cjs expo start --lan",
+    "start:clear": "node ./scripts/dev-server-host.cjs expo start --lan -c",
+    "start:localhost": "expo start --localhost",
+    "start:localhost:clear": "expo start --localhost -c",
+    "start:tunnel": "expo start --tunnel",
+    "start:tunnel:clear": "expo start --tunnel -c",
+    "android": "node ./scripts/dev-server-host.cjs expo start --lan --android",
+    "ios": "node ./scripts/dev-server-host.cjs expo start --lan --ios",
+    "web": "expo start --web",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@hookform/resolvers": "^3.9.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "11.4.1",
+    "@tanstack/react-query": "^5.59.0",
+    "axios": "^1.7.0",
     "expo": "~54.0.0",
-    "expo-dev-client": "~6.0.21",
-    "expo-status-bar": "~55.0.6",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "react-native": "0.83.6",
-    "react-native-web": "^0.21.0"
+    "expo-device": "~8.0.10",
+    "expo-font": "~14.0.11",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-local-authentication": "~17.0.8",
+    "expo-notifications": "~0.32.17",
+    "expo-router": "~6.0.23",
+    "expo-secure-store": "~15.0.8",
+    "expo-splash-screen": "~31.0.13",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.53.0",
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "react-native-web": "^0.21.0",
+    "zod": "^3.23.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
-    "@types/react": "~19.2.2",
-    "typescript": "~5.9.2"
-  },
-  "private": true
+    "@babel/core": "^7.25.0",
+    "@types/react": "~19.1.10",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "typescript": "^5.6.0"
+  }
 }

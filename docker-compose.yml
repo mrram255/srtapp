@@ -1,14 +1,13 @@
-version: '3.8'
 
 services:
   db:
     image: postgres:16-alpine
     container_name: srtapp-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: srtapp_db
       POSTGRES_USER: srtapp_user
-      POSTGRES_PASSWORD: srtapp_password
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-srtapp_pass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,25 +21,47 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     container_name: srtapp-redis
-    restart: always
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_pass}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_pass}
+    volumes:
+      - redis_data:/data
     ports:
       - "6379:6379"
     networks:
       - srtapp-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep -q PONG"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: srtapp-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - srtapp-network
 
   meilisearch:
     image: getmeili/meilisearch:v1.8
-    container_name: srtapp-search
-    restart: always
+    container_name: srtapp-meilisearch
+    restart: unless-stopped
     environment:
-      MEILI_MASTER_KEY: srtapp-master-key
+      MEILI_MASTER_KEY: ${MEILISEARCH_API_KEY:-master_key}
+      MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch_data:/meili_data
     ports:
@@ -48,45 +69,38 @@ services:
     networks:
       - srtapp-network
 
-  minio:
-    image: minio/minio:latest
-    container_name: srtapp-minio
-    restart: always
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    networks:
-      - srtapp-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: srtapp-backend
-    restart: always
-    env_file:
-      - ./backend/.env
+    restart: unless-stopped
     environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
-      - MEILISEARCH_HOST=meilisearch
-      - MINIO_HOST=minio
-      - MINIO_PORT=9000
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,backend
+      DB_NAME: srtapp_db
+      DB_USER: srtapp_user
+      DB_PASSWORD: ${DB_PASSWORD:-srtapp_pass}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/2
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_BUCKET: srtapp-media
+      MEILISEARCH_HOST: http://meilisearch:7700
+      MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-master_key}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8081
     volumes:
       - ./backend:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
     ports:
       - "8000:8000"
     depends_on:
@@ -94,49 +108,111 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_started
+      meilisearch:
+        condition: service_started
     networks:
       - srtapp-network
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn srtapp.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+             python manage.py runserver 0.0.0.0:8000"
 
   celery:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: srtapp-celery
-    restart: always
-    env_file:
-      - ./backend/.env
+    restart: unless-stopped
     environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: "True"
+      DB_NAME: srtapp_db
+      DB_USER: srtapp_user
+      DB_PASSWORD: ${DB_PASSWORD:-srtapp_pass}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/2
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_BUCKET: srtapp-media
+      MEILISEARCH_HOST: http://meilisearch:7700
+      MEILISEARCH_API_KEY: ${MEILISEARCH_API_KEY:-master_key}
     volumes:
       - ./backend:/app
     depends_on:
+      backend:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - srtapp-network
+    command: celery -A srtapp worker -l info
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: srtapp-celery-beat
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: "True"
+      DB_NAME: srtapp_db
+      DB_USER: srtapp_user
+      DB_PASSWORD: ${DB_PASSWORD:-srtapp_pass}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_pass}@redis:6379/2
+    volumes:
+      - ./backend:/app
+    depends_on:
+      backend:
+        condition: service_started
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
       - srtapp-network
-    command: celery -A srtapp worker -l info
+    command: celery -A srtapp beat -l info
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: srtapp-frontend
-    restart: always
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      JWT_SECRET: ${JWT_SECRET_KEY:-change-me-in-production}
+      NODE_ENV: development
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
     networks:
       - srtapp-network
     command: npm run dev
@@ -144,13 +220,14 @@ services:
   nginx:
     image: nginx:alpine
     container_name: srtapp-nginx
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/var/www/static
-      - media_volume:/var/www/media
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - backend_static:/var/www/static
+      - backend_media:/var/www/media
     depends_on:
       - backend
       - frontend
@@ -159,10 +236,11 @@ services:
 
 volumes:
   postgres_data:
-  meilisearch_data:
+  redis_data:
   minio_data:
-  static_volume:
-  media_volume:
+  meilisearch_data:
+  backend_static:
+  backend_media:
 
 networks:
   srtapp-network:
