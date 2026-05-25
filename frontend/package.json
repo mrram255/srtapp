@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "auth:sync": "node scripts/sync-jwt-env.mjs",
-    "predev": "node scripts/sync-jwt-env.mjs",
-    "dev": "next dev --turbopack",
+    "predev": "node scripts/sync-jwt-env.mjs && node scripts/free-port-3000.mjs",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
