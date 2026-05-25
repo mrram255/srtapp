@@ -29,6 +29,10 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const sessionHint =
+    searchParams.get("reason") === "session"
+      ? "Your session expired or JWT keys were out of sync. Sign in again (run npm run auth:sync if this keeps happening)."
+      : "";
 
   const appLabel = process.env.NEXT_PUBLIC_APP_NAME ?? "SRTAPP";
 
@@ -66,6 +70,9 @@ export function LoginForm() {
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-8 shadow-card">
+          {sessionHint ? (
+            <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{sessionHint}</div>
+          ) : null}
           {error ? (
             <div className="mb-6 flex items-center gap-2 rounded-lg bg-error/10 p-3 text-sm text-error">
               <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_API_URL ??
     "http://localhost:8000/api/v1";
 
-  const refreshUrl = `${apiBase.replace(/\/$/, "")}/auth/token/refresh/`;
+  const refreshUrl = `${apiBase.replace(/\/$/, "")}/auth/refresh/`;
 
   const upstream = await fetch(refreshUrl, {
     method: "POST",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -13,23 +13,29 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-  const checkAuth = useAuthStore((s) => s.checkAuth);
+  const hydrate = useAuthStore((s) => s.hydrate);
   const [phase, setPhase] = useState<"checking" | "anon" | "authed">("checking");
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     let cancelled = false;
     void (async () => {
-      const ok = await checkAuth();
+      const ok = await hydrate();
       if (cancelled) return;
       setPhase(ok ? "authed" : "anon");
       if (!ok) {
-        router.replace("/login");
+        router.replace("/login?reason=session");
       }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [checkAuth, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
+  }, []);
 
   if (phase === "checking") {
     return (

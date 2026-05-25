@@ -3,6 +3,8 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
+    "auth:sync": "node scripts/sync-jwt-env.mjs",
+    "predev": "node scripts/sync-jwt-env.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

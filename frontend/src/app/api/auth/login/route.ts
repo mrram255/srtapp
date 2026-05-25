@@ -83,9 +83,15 @@ export async function POST(request: Request) {
 
     const secure = process.env.NODE_ENV === "production";
 
+    const rawUser = (tokens.user ?? tokens.user_data) as Record<string, unknown> | null | undefined;
+    const user =
+      rawUser && typeof rawUser === "object"
+        ? { ...rawUser, role: String(rawUser.role ?? "").toUpperCase() }
+        : null;
+
     const res = NextResponse.json({
       ok: true,
-      user: tokens.user ?? null,
+      user,
       /** Mirrors cookie for Authorization headers on Django requests (also stored httpOnly). */
       access: tokens.access,
     });

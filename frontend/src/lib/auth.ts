@@ -21,7 +21,7 @@ function normalizeUser(raw: Record<string, unknown> | null | undefined): AuthUse
   return {
     id: String(raw.id ?? ""),
     email: String(raw.email ?? ""),
-    role: String(raw.role ?? ""),
+    role: String(raw.role ?? "").toUpperCase(),
     first_name: String(raw.first_name ?? ""),
     last_name: String(raw.last_name ?? ""),
     college_id: raw.college_id ? String(raw.college_id) : null,
@@ -38,26 +38,30 @@ export async function login(email: string, password: string): Promise<LoginResul
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
   });
 
   const body = (await response.json()) as {
     message?: string;
     access?: string;
-    user?: AuthUser | null;
+    user?: Record<string, unknown> | null;
     requires2fa?: boolean;
     sessionKey?: string;
   };
 
   if (!response.ok) {
-    throw new Error(body.message ?? "Login failed.");
+    const hint =
+      response.status === 502
+        ? " Django backend is not running. Start it: cd ~/srtapp/backend && python manage.py runserver"
+        : "";
+    throw new Error((body.message ?? "Login failed.") + hint);
   }
 
   if (body.requires2fa) {
     return {
       requires2fa: true,
       sessionKey: body.sessionKey,
-      user: body.user ?? null,
+      user: normalizeUser(body.user),
     };
   }
 
@@ -67,7 +71,7 @@ export async function login(email: string, password: string): Promise<LoginResul
 
   return {
     requires2fa: false,
-    user: body.user ?? null,
+    user: normalizeUser(body.user),
     access: body.access,
   };
 }
@@ -83,7 +87,7 @@ export async function verify2FA(otpCode: string, sessionKey: string): Promise<Lo
   const body = (await response.json()) as {
     message?: string;
     access?: string;
-    user?: AuthUser | null;
+    user?: Record<string, unknown> | null;
   };
 
   if (!response.ok) {
@@ -96,7 +100,7 @@ export async function verify2FA(otpCode: string, sessionKey: string): Promise<Lo
 
   return {
     requires2fa: false,
-    user: body.user ?? null,
+    user: normalizeUser(body.user),
     access: body.access,
   };
 }
@@ -110,8 +114,16 @@ export async function logout(): Promise<void> {
 }
 
 export async function refreshToken(): Promise<string | null> {
-  const response = await fetch("/api/auth/refresh", { method: "POST", credentials: "include" });
-  if (!response.ok) return null;
+  const response = await fetch("/api/auth/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    clearMemoryAccessToken();
+    return null;
+  }
+
   const body = (await response.json()) as { access?: string };
   if (body.access) {
     setMemoryAccessToken(body.access);
@@ -120,11 +132,36 @@ export async function refreshToken(): Promise<string | null> {
   return null;
 }
 
-export async function getUser(): Promise<AuthUser | null> {
-  const response = await fetch("/api/auth/me", { credentials: "include" });
-  if (!response.ok) return null;
-  const body = (await response.json()) as { user?: AuthUser };
-  return body.user ?? null;
+export type GetUserResult = {
+  user: AuthUser | null;
+  status: "ok" | "unauthorized" | "unavailable";
+};
+
+export async function getUser(): Promise<GetUserResult> {
+  const fetchMe = async () => {
+    const response = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+    if (response.status === 401 || response.status === 403) {
+      return { user: null, status: "unauthorized" as const };
+    }
+    if (!response.ok) {
+      return { user: null, status: "unavailable" as const };
+    }
+    const body = (await response.json()) as { user?: Record<string, unknown> };
+    const user = normalizeUser(body.user);
+    if (!user) {
+      return { user: null, status: "unauthorized" as const };
+    }
+    return { user, status: "ok" as const };
+  };
+
+  let result = await fetchMe();
+  if (result.status === "unauthorized") {
+    const access = await refreshToken();
+    if (access) {
+      result = await fetchMe();
+    }
+  }
+  return result;
 }
 
 export function isAuthenticated(user: AuthUser | null): boolean {
@@ -143,7 +180,7 @@ export function hasPermission(user: AuthUser | null, module: string, action: str
 }
 
 export function getDashboardPathForRole(role: string): string {
-  const segment = ROLE_HOME_SEGMENT[role] ?? "student";
+  const segment = ROLE_HOME_SEGMENT[role] ?? ROLE_HOME_SEGMENT[role.toUpperCase()] ?? "student";
   return `/dashboard/${segment}`;
 }
 

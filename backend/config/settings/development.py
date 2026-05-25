@@ -4,6 +4,8 @@ from .base import *
 
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+# Avoid accidental lockouts while iterating on login during local dev.
+DISABLE_AUTH_THROTTLE = True
 # Dev: allow any frontend origin (3000, 3002, etc.) to avoid CORS blocks during local work.
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -27,9 +29,8 @@ INSTALLED_APPS += ['debug_toolbar', 'silk']
 MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', 'silk.middleware.SilkyMiddleware']
 INTERNAL_IPS = ['127.0.0.1']
 
-# Silk profiling — keep text stats in Silk UI; disable binary `.prof` writes to MEDIA_ROOT.
-# Docker / root-owned `backend/media/` often causes PermissionError for local runserver users.
-SILKY_PYTHON_PROFILER = True
+# Silk request logging only — cProfile conflicts with debug toolbar / hot reload.
+SILKY_PYTHON_PROFILER = False
 SILKY_PYTHON_PROFILER_BINARY = False
 
 # Console email backend

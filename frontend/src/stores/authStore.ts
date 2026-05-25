@@ -6,6 +6,7 @@ import {
   getUser,
   login as authLogin,
   logout as authLogout,
+  refreshToken,
   verify2FA,
 } from "@/lib/auth";
 import { clearMemoryAccessToken, setMemoryAccessToken } from "@/lib/api/auth-token";
@@ -23,7 +24,6 @@ interface AuthState {
   setUser: (user: AuthUser | null) => void;
   clearAuth: () => void;
   hydrate: () => Promise<boolean>;
-  /** @deprecated use hydrate */
   checkAuth: () => Promise<boolean>;
 }
 
@@ -50,16 +50,22 @@ export const useAuthStore = create<AuthState>()(
             return { requires2fa: true, redirectTo: "/verify-2fa" };
           }
 
+          if (!result.user) {
+            throw new Error("Login succeeded but user profile was missing. Check API_ORIGIN / Django auth/me.");
+          }
+
           set({
             user: result.user,
             tokens: result.access ? { access: result.access, refresh: "" } : null,
-            isAuthenticated: !!result.user,
+            isAuthenticated: true,
             pendingSessionKey: null,
             isLoading: false,
           });
 
-          const redirectTo = result.user ? getDashboardPathForRole(result.user.role) : "/dashboard";
-          return { requires2fa: false, redirectTo };
+          return {
+            requires2fa: false,
+            redirectTo: getDashboardPathForRole(result.user.role),
+          };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -74,14 +80,17 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const result = await verify2FA(otp, sessionKey);
+          if (!result.user) {
+            throw new Error("Verification succeeded but user profile was missing.");
+          }
           set({
             user: result.user,
             tokens: result.access ? { access: result.access, refresh: "" } : null,
-            isAuthenticated: !!result.user,
+            isAuthenticated: true,
             pendingSessionKey: null,
             isLoading: false,
           });
-          return result.user ? getDashboardPathForRole(result.user.role) : "/dashboard";
+          return getDashboardPathForRole(result.user.role);
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -115,15 +124,13 @@ export const useAuthStore = create<AuthState>()(
       },
 
       hydrate: async () => {
-        const user = await getUser();
-        if (!user) {
-          get().clearAuth();
-          return false;
-        }
+        const persisted = get().user;
+
         try {
           const boot = await fetch("/api/auth/bootstrap", {
             method: "POST",
             credentials: "include",
+            cache: "no-store",
           });
           if (boot.ok) {
             const body = (await boot.json()) as { access?: string };
@@ -132,16 +139,40 @@ export const useAuthStore = create<AuthState>()(
             }
           }
         } catch {
-          /* ignore */
+          /* non-fatal */
         }
-        set({ user, isAuthenticated: true, isLoading: false });
-        return true;
+
+        const { user, status } = await getUser();
+
+        if (status === "ok" && user) {
+          set({ user, isAuthenticated: true, isLoading: false });
+          return true;
+        }
+
+        if (status === "unavailable" && persisted) {
+          set({ user: persisted, isAuthenticated: true, isLoading: false });
+          return true;
+        }
+
+        if (status === "unauthorized") {
+          const refreshed = await refreshToken();
+          if (refreshed) {
+            const retry = await getUser();
+            if (retry.status === "ok" && retry.user) {
+              set({ user: retry.user, isAuthenticated: true, isLoading: false });
+              return true;
+            }
+          }
+        }
+
+        get().clearAuth();
+        return false;
       },
 
       checkAuth: async () => get().hydrate(),
     }),
     {
-      name: "auth-storage-v2",
+      name: "auth-storage-v3",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -150,6 +181,3 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
-
-/** @deprecated Use useAuthStore from @/stores/authStore */
-export { useAuthStore as useLegacyAuthStore };
