@@ -17,9 +17,10 @@ function normalizePathname(pathname: string) {
 
 const PUBLIC_PREFIXES = [
   "/login",
+  "/verify-2fa",
   "/forgot-password",
-  "/register",
   "/reset-password",
+  "/register",
   "/api/",
   "/_next",
   "/public",

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const apiBase =
     process.env.API_ORIGIN ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
-  const upstream = await fetch(`${apiBase.replace(/\/$/, "")}/auth/password/forgot/`, {
+  const upstream = await fetch(`${apiBase.replace(/\/$/, "")}/auth/password/reset/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),

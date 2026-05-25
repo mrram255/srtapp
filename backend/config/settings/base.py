@@ -46,6 +46,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.core',
+    'apps.authentication',
     'apps.accounts',
     'apps.colleges',
     'apps.students',
@@ -165,6 +166,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # ── DEFAULT PRIMARY KEY ───────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── PASSWORD POLICY ───────────────────────────────────────
+PASSWORD_EXPIRY_DAYS = env.int('PASSWORD_EXPIRY_DAYS', default=90)
 
 # ── AUTH USER MODEL ───────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.User'

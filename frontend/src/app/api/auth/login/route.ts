@@ -56,6 +56,17 @@ export async function POST(request: Request) {
     }
 
     const tokens = payload.data;
+
+    if (upstream.ok && payload.success !== false && tokens?.requires_2fa) {
+      return NextResponse.json({
+        ok: true,
+        requires2fa: true,
+        sessionKey: tokens.session_key,
+        user: tokens.user_data ?? tokens.user ?? null,
+        message: payload.message,
+      });
+    }
+
     const ok = upstream.ok && payload.success !== false && tokens?.access && tokens?.refresh;
 
     if (!ok) {

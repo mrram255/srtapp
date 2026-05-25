@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Eye, EyeOff, Loader2, School } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth-store";
+import { useAuthStore } from "@/stores/authStore";
 
 function safeInternalPath(raw: string | null, fallback: string) {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return fallback;
@@ -37,8 +37,12 @@ export function LoginForm() {
     setError("");
     setIsLoading(true);
     try {
-      await login(email, password);
-      router.push(callbackUrl);
+      const result = await login(email, password);
+      if (result.requires2fa) {
+        router.push("/verify-2fa");
+        return;
+      }
+      router.push(result.redirectTo ?? callbackUrl);
       router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";

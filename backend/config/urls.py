@@ -11,7 +11,8 @@ from apps.core.api_root import api_v1_root
 urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('api/v1/', api_v1_root, name='api_v1_root'),
-    path('api/v1/auth/', include('apps.accounts.urls')),
+    path('api/v1/auth/', include('apps.authentication.urls')),
+    path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/colleges/', include('apps.colleges.urls')),
     path('api/v1/students/', include('apps.students.urls')),
     path('api/v1/teachers/', include('apps.teachers.urls')),
