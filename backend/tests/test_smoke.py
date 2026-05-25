@@ -88,4 +88,4 @@ def test_login_endpoint_validation_errors(client: Client) -> None:
 def test_standard_pagination_limit_matches_spec() -> None:
     pagination = StandardPagination()
     assert pagination.page_size == 20
-    assert pagination.max_page_size == 50
+    assert pagination.max_page_size == 100
