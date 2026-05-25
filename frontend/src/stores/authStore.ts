@@ -8,7 +8,7 @@ import {
   logout as authLogout,
   verify2FA,
 } from "@/lib/auth";
-import { clearMemoryAccessToken, setMemoryAccessToken } from "@/lib/api/auth-token";
+import { clearMemoryAccessToken } from "@/lib/api/auth-token";
 import type { AuthUser } from "@/types";
 
 interface AuthState {

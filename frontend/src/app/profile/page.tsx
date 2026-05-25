@@ -57,7 +57,7 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/auth/profile/").then((r) => r.data);
+        const res = await api.get("/accounts/profile/").then((r) => r.data);
         setProfile(res.data);
         setForm({
           first_name: res.data.first_name,
@@ -76,7 +76,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await api.patch("/auth/profile/", form);
+      await api.patch("/accounts/profile/", form);
       setProfile((prev) => prev ? { ...prev, ...form, full_name: `${form.first_name} ${form.last_name}` } : prev);
       setEditing(false);
       setSuccess("Profile updated successfully!");

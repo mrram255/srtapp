@@ -135,7 +135,10 @@ export function hasRole(user: AuthUser | null, role: string): boolean {
   return user?.role === role;
 }
 
-export function hasPermission(_user: AuthUser | null, _module: string, _action: string): boolean {
+export function hasPermission(user: AuthUser | null, module: string, action: string): boolean {
+  void user;
+  void module;
+  void action;
   return true;
 }
 

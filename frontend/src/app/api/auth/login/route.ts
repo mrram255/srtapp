@@ -9,6 +9,9 @@ type DjangoEnvelope = {
     access?: string;
     refresh?: string;
     user?: unknown;
+    user_data?: unknown;
+    requires_2fa?: boolean;
+    session_key?: string;
   };
 };
 

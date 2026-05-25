@@ -18,8 +18,9 @@ function normalizeAuthUser(raw: Record<string, unknown>): AuthUser {
     role: String(raw.role ?? ""),
     first_name: String(raw.first_name ?? ""),
     last_name: String(raw.last_name ?? ""),
-    college_id: raw.college != null ? String(raw.college) : null,
-    department_id: raw.department != null ? String(raw.department) : null,
+    college_id: raw.college_id != null ? String(raw.college_id) : raw.college != null ? String(raw.college) : null,
+    department_id:
+      raw.department_id != null ? String(raw.department_id) : raw.department != null ? String(raw.department) : null,
     is_verified: Boolean(raw.is_verified),
     must_change_password: Boolean(raw.must_change_password),
     profile_photo: String(raw.profile_photo ?? ""),
@@ -44,7 +45,7 @@ export async function GET() {
     process.env.NEXT_PUBLIC_API_URL ??
     "http://localhost:8000/api/v1";
 
-  const profileUrl = `${apiBase.replace(/\/$/, "")}/auth/profile/`;
+  const profileUrl = `${apiBase.replace(/\/$/, "")}/auth/me/`;
 
   const upstream = await fetch(profileUrl, {
     headers: {

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${access}`,
         },
-        body: JSON.stringify({ refresh }),
+        body: JSON.stringify({ refresh_token: refresh }),
       });
     } catch {
       /* still clear cookies locally */

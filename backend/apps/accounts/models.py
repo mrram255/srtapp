@@ -75,7 +75,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_index=True,
         validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter a valid phone number.')],
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, db_index=True)
+    role = models.CharField(max_length=50, db_index=True)
+    role_ref = models.ForeignKey(
+        'users.Role',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+    )
 
     college = models.ForeignKey(
         'colleges.College',
@@ -93,9 +100,35 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100)
+    gender = models.CharField(
+        max_length=1,
+        choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')],
+        blank=True,
+    )
+    date_of_birth = models.DateField(null=True, blank=True)
     profile_photo = models.CharField(max_length=500, blank=True)
     signature = models.CharField(max_length=500, blank=True)
+    aadhaar_number = models.CharField(max_length=255, blank=True)
+    pan_number = models.CharField(max_length=255, blank=True)
+
+    address_line_1 = models.CharField(max_length=255, blank=True)
+    address_line_2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    district = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    pincode = models.CharField(max_length=10, blank=True)
+    country = models.CharField(max_length=100, default='India', blank=True)
+
+    joined_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='created_users',
+    )
 
     is_active = models.BooleanField(default=True, db_index=True)
     is_verified = models.BooleanField(default=False)
@@ -144,7 +177,50 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.last_name}'.strip()
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(part for part in parts if part).strip()
+
+    def get_full_name(self):
+        return self.full_name
+
+    def get_masked_aadhaar(self):
+        from apps.core.utils import mask_aadhaar
+
+        if not self.aadhaar_number:
+            return ''
+        try:
+            return mask_aadhaar(self.aadhaar_number)
+        except Exception:
+            return 'XXXX-XXXX-XXXX'
+
+    def get_masked_phone(self):
+        if len(self.phone) <= 4:
+            return self.phone
+        return f'{"X" * (len(self.phone) - 4)}{self.phone[-4:]}'
+
+    def has_module_permission(self, module: str, action: str) -> bool:
+        from apps.users.services import UserService
+
+        return UserService.check_permission(self, module, action)
+
+    def has_field_permission(self, module: str, field: str, action: str = 'edit') -> bool:
+        if self.is_superuser or self.role in {'SUPER_ADMIN'}:
+            return True
+        if not self.role_ref_id:
+            return False
+        restriction = (
+            self.role_ref.role_permissions.filter(
+                module_permission__module__name=module,
+            )
+            .values_list('field_restrictions', flat=True)
+            .first()
+        )
+        if not restriction:
+            return True
+        blocked = restriction.get('hidden', []) + restriction.get('readonly', [])
+        if action == 'edit' and field in blocked:
+            return False
+        return True
 
     def __str__(self):
         return f'{self.full_name} ({self.role})'

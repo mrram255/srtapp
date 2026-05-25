@@ -45,7 +45,7 @@ export default function ProfilePage() {
     (async () => {
       try {
         setLoading(true);
-        const res = await api.get("/auth/profile/").then((r) => r.data);
+        const res = await api.get("/accounts/profile/").then((r) => r.data);
         setProfile(res.data);
         setForm({ first_name: res.data.first_name, last_name: res.data.last_name, phone: res.data.phone });
       } catch (e: unknown) {
@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await api.patch("/auth/profile/", form);
+      await api.patch("/accounts/profile/", form);
       setProfile((p) => p ? { ...p, ...form, full_name: `${form.first_name} ${form.last_name}` } : p);
       setEditing(false);
       setSuccess("Profile updated!");
@@ -127,7 +127,7 @@ export default function ProfilePage() {
     }
     try {
       setPwdLoading(true);
-      await api.post("/auth/change-password/", pwdForm);
+      await api.post("/auth/password/change/", pwdForm);
       setPwdSuccess("Password changed successfully!");
       setPwdForm({ old_password: "", new_password: "", confirm_password: "" });
       setTimeout(() => { setShowPwdModal(false); setPwdSuccess(""); }, 2000);
