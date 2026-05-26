@@ -678,3 +678,33 @@ class StudentStatisticsView(APIView):
                   .annotate(c=Count('id')).values_list('admission_type', 'c')
             ),
         })
+
+
+class StudentCategoryWiseView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.db.models import Count
+        from .models import Student
+        college_id = request.query_params.get('college')
+        qs = Student.objects.filter(is_deleted=False)
+        if college_id:
+            qs = qs.filter(college_id=college_id)
+        data = {
+            'category_distribution': list(
+                qs.values('category')
+                  .annotate(count=Count('id'))
+                  .order_by('-count')
+            ),
+            'admission_type_distribution': list(
+                qs.values('admission_type')
+                  .annotate(count=Count('id'))
+                  .order_by('-count')
+            ),
+            'student_status_distribution': list(
+                qs.values('student_status')
+                  .annotate(count=Count('id'))
+                  .order_by('-count')
+            ),
+        }
+        return Response(data)

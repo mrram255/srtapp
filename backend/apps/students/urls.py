@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    StudentCategoryWiseView,
     StudentDashboardView,
     StudentDetailView,
     StudentDocumentListView,
@@ -24,6 +25,7 @@ urlpatterns = [
     path('documents/', StudentDocumentListView.as_view(), name='student_document_list'),
     path('me/', StudentProfileView.as_view(), name='student_me'),
     path('statistics/', StudentStatisticsView.as_view(), name='student_statistics'),
+    path('category-wise/', StudentCategoryWiseView.as_view(), name='student_category_wise'),
     path('photo/upload/', StudentPhotoUploadView.as_view(), name='student_photo_upload'),
     path('signature/upload/', StudentSignatureUploadView.as_view(), name='student_signature_upload'),
     path('id-card/', StudentIDCardView.as_view(), name='student_id_card'),

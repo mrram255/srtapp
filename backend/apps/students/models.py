@@ -101,6 +101,38 @@ class Student(CollegeScopedModel):
         return self.user.email
 
 
+    # ── Section 5: Additional fields ──────────────────────────────
+    university_roll_number = models.CharField(
+        max_length=50, unique=True, null=True, blank=True, db_index=True
+    )
+    admission_number = models.CharField(
+        max_length=50, unique=True, null=True, blank=True, db_index=True
+    )
+    caste = models.CharField(max_length=100, blank=True)
+    sub_category = models.CharField(max_length=100, blank=True)
+    domicile_state = models.CharField(max_length=100, blank=True)
+    mother_tongue = models.CharField(max_length=100, blank=True)
+    identification_mark = models.CharField(max_length=200, blank=True)
+    student_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('active', 'Active'), ('detained', 'Detained'),
+            ('suspended', 'Suspended'), ('rusticated', 'Rusticated'),
+            ('dropped_out', 'Dropped Out'), ('passout', 'Passed Out'),
+            ('alumni', 'Alumni'), ('year_back', 'Year Back'),
+            ('semester_back', 'Semester Back'),
+        ],
+        default='active', db_index=True,
+    )
+    status_changed_at = models.DateTimeField(null=True, blank=True)
+    status_reason = models.TextField(blank=True)
+    abc_id = models.CharField(max_length=100, blank=True, help_text="Academic Bank of Credits ID")
+    digilocker_id = models.CharField(max_length=100, blank=True)
+    hostel_resident = models.BooleanField(default=False)
+    transport_user = models.BooleanField(default=False)
+    library_card_number = models.CharField(max_length=50, blank=True)
+
+
 class StudentDocument(CollegeScopedModel):
     """Student uploaded documents."""
 
