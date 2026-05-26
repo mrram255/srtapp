@@ -20,11 +20,11 @@ def designation(db, college):
 @pytest.fixture
 def admin_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="admin@staff.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
+    return User.objects.create_user(email="admin@staff.com", password="x", role="STAFF", phone="9000000011", first_name="Test", last_name="User")
 
 def staff_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="faculty@staff.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
+    return User.objects.create_user(email="faculty@staff.com", password="x", role="STAFF", phone="9000000011", first_name="Test", last_name="User")
 
 @pytest.fixture
 def staff_member(db, staff_user, college, department, designation):

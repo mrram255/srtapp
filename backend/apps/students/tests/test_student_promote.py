@@ -17,12 +17,12 @@ def branch(db, college, department):
 
 def staff_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="promo_staff@t.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
+    return User.objects.create_user(email="promo_staff@t.com", password="x", role="STAFF", phone="9000000014", first_name="Test", last_name="User")
 
 def student(db, college, department, branch):
     from apps.accounts.models import User
     from apps.students.models import Student
-    u = User.objects.create_user(email="promo_stu@t.com", password="x", role="STUDENT", phone="9000000001", first_name="Test", last_name="User")
+    u = User.objects.create_user(email="promo_stu@t.com", password="x", role="STUDENT", phone="9000000014", first_name="Test", last_name="User")
     return Student.objects.create(
         user=u, college=college, department=department, branch=branch,
         enrollment_number="PROMO01", roll_number="P01",

@@ -22,7 +22,7 @@ def designation_assoc(db, college):
 @pytest.fixture
 def admin_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="sb_admin@t.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
+    return User.objects.create_user(email="sb_admin@t.com", password="x", role="STAFF", phone="9000000012", first_name="Test", last_name="User")
 
 @pytest.fixture
 def staff_member(db, admin_user, college, department, designation_ap):

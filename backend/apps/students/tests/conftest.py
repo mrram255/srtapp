@@ -59,7 +59,7 @@ def student(db, student_user, college, department, branch):
         user=student_user, college=college,
         department=department, branch=branch,
         enrollment_number="TST2401001", roll_number="CSE001",
-        admission_number="ADM2401001", current_semester=1,
+        admission_number="ADM2401001", semester=1,
     )
 
 
