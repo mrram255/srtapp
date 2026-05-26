@@ -3,12 +3,10 @@ from rest_framework.test import APIClient
 from apps.staff.models import Designation, Staff
 
 
-@pytest.fixture
 def college(db):
     from apps.colleges.models import College
     return College.objects.create(name="Perm College", code="PRC", is_active=True)
 
-@pytest.fixture
 def department(db, college):
     from apps.colleges.models import Department
     return Department.objects.create(name="Math", college=college, is_active=True)
@@ -17,15 +15,14 @@ def department(db, college):
 def designation(db, college):
     return Designation.objects.create(name="Lecturer", category="teaching", level=1, college=college)
 
-@pytest.fixture
 def student_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="perm_stu@t.com", password="x", role="STUDENT")
+    return User.objects.create_user(email="perm_stu@t.com", password="x", role="STUDENT", phone="9000000001", first_name="Test", last_name="User")
 
 @pytest.fixture
 def staff_admin(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="perm_admin@t.com", password="x", role="STAFF")
+    return User.objects.create_user(email="perm_admin@t.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
 
 @pytest.fixture
 def staff_member(db, staff_admin, college, department, designation):

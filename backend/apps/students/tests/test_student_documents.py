@@ -4,27 +4,22 @@ from rest_framework.test import APIClient
 from apps.students.models import StudentDocumentVerification
 
 
-@pytest.fixture
 def college(db):
     from apps.colleges.models import College
     return College.objects.create(name="Doc College", code="DTC", is_active=True)
 
-@pytest.fixture
 def department(db, college):
     from apps.colleges.models import Department
     return Department.objects.create(name="CS", college=college, is_active=True)
 
-@pytest.fixture
 def branch(db, college, department):
     from apps.colleges.models import Branch
     return Branch.objects.create(name="CSE", department=department, college=college, is_active=True)
 
-@pytest.fixture
 def staff_user(db):
     from apps.accounts.models import User
     return User.objects.create_user(email="doc_staff@t.com", password="x", role="STAFF")
 
-@pytest.fixture
 def student(db, college, department, branch):
     from apps.accounts.models import User
     from apps.students.models import Student
@@ -35,7 +30,6 @@ def student(db, college, department, branch):
         admission_number="ADOC01", current_semester=1,
     )
 
-@pytest.fixture
 def auth_client(staff_user):
     client = APIClient()
     client.force_authenticate(user=staff_user)

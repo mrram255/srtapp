@@ -3,19 +3,16 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 
-@pytest.fixture
 def college(db):
     from apps.colleges.models import College
     return College.objects.create(name="Test College", code="TC", is_active=True)
 
 
-@pytest.fixture
 def department(db, college):
     from apps.colleges.models import Department
     return Department.objects.create(name="CS", college=college, is_active=True)
 
 
-@pytest.fixture
 def branch(db, college, department):
     from apps.colleges.models import Branch
     return Branch.objects.create(
@@ -23,7 +20,6 @@ def branch(db, college, department):
     )
 
 
-@pytest.fixture
 def staff_user(db):
     from apps.accounts.models import User
     return User.objects.create_user(
@@ -32,7 +28,6 @@ def staff_user(db):
     )
 
 
-@pytest.fixture
 def student_user(db):
     from apps.accounts.models import User
     return User.objects.create_user(
@@ -41,7 +36,6 @@ def student_user(db):
     )
 
 
-@pytest.fixture
 def student(db, student_user, college, department, branch):
     from apps.students.models import Student
     return Student.objects.create(
@@ -51,7 +45,6 @@ def student(db, student_user, college, department, branch):
     )
 
 
-@pytest.fixture
 def auth_client(staff_user):
     client = APIClient()
     client.force_authenticate(user=staff_user)

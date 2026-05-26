@@ -3,38 +3,32 @@ from rest_framework.test import APIClient
 from apps.students.models import StudentSemesterRecord
 
 
-@pytest.fixture
 def college(db):
     from apps.colleges.models import College
     return College.objects.create(name="Promo College", code="PMC", is_active=True)
 
-@pytest.fixture
 def department(db, college):
     from apps.colleges.models import Department
     return Department.objects.create(name="CS", college=college, is_active=True)
 
-@pytest.fixture
 def branch(db, college, department):
     from apps.colleges.models import Branch
     return Branch.objects.create(name="CSE", department=department, college=college, is_active=True)
 
-@pytest.fixture
 def staff_user(db):
     from apps.accounts.models import User
-    return User.objects.create_user(email="promo_staff@t.com", password="x", role="STAFF")
+    return User.objects.create_user(email="promo_staff@t.com", password="x", role="STAFF", phone="9000000001", first_name="Test", last_name="User")
 
-@pytest.fixture
 def student(db, college, department, branch):
     from apps.accounts.models import User
     from apps.students.models import Student
-    u = User.objects.create_user(email="promo_stu@t.com", password="x", role="STUDENT")
+    u = User.objects.create_user(email="promo_stu@t.com", password="x", role="STUDENT", phone="9000000001", first_name="Test", last_name="User")
     return Student.objects.create(
         user=u, college=college, department=department, branch=branch,
         enrollment_number="PROMO01", roll_number="P01",
         admission_number="APROMO01", current_semester=1,
     )
 
-@pytest.fixture
 def auth_client(staff_user):
     client = APIClient()
     client.force_authenticate(user=staff_user)
