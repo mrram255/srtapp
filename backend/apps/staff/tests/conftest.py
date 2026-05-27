@@ -68,4 +68,5 @@ def auth_client(staff_user):
     from rest_framework.test import APIClient
     client = APIClient()
     client.force_authenticate(user=staff_user)
+    client.raise_request_exception = True
     return client

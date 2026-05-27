@@ -7,7 +7,7 @@ class DesignationSerializer(serializers.ModelSerializer):
         model = Designation
         fields = [
             'id', 'name', 'category', 'level', 'college',
-            'is_active', 'created_at', 'updated_at',
+            'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -46,7 +46,7 @@ class StaffListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'employee_id', 'full_name', 'email', 'phone',
             'staff_type', 'designation_name', 'department_name',
-            'status', 'date_of_joining', 'is_active',
+            'status', 'date_of_joining', 
         ]
 
     def get_full_name(self, obj):
@@ -89,7 +89,7 @@ class StaffDetailSerializer(serializers.ModelSerializer):
             # Documents
             'resume',
             # Status & Meta
-            'status', 'college', 'is_active',
+            'status', 'college', 
             'created_at', 'updated_at',
             'service_book_entries',
         ]
