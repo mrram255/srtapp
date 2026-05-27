@@ -37,7 +37,7 @@ def create_user(**kwargs):
         'first_name': 'Auth',
         'last_name': 'User',
         'role': 'ADMIN',
-        'password': 'ValidPass1!',
+        'password': 'ValidPass123!',
     }
     defaults.update(kwargs)
     password = defaults.pop('password')
@@ -50,7 +50,7 @@ class TestLogin:
         user = create_user(email='login_ok@example.com', phone='+919876543211')
         response = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'ValidPass1!'},
+            {'email': user.email, 'password': 'ValidPass123!'},
             format='json',
         )
         assert response.status_code == 200
@@ -63,7 +63,7 @@ class TestLogin:
         user = create_user(email='login_bad@example.com', phone='+919876543212')
         response = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'WrongPass1!'},
+            {'email': user.email, 'password': 'WrongPass123!'},
             format='json',
         )
         assert response.status_code == 400
@@ -72,7 +72,7 @@ class TestLogin:
     def test_login_user_not_found(self, api_client):
         response = api_client.post(
             '/api/v1/auth/login/',
-            {'email': 'missing@example.com', 'password': 'ValidPass1!'},
+            {'email': 'missing@example.com', 'password': 'ValidPass123!'},
             format='json',
         )
         assert response.status_code == 400
@@ -84,7 +84,7 @@ class TestLogin:
         user.save()
         response = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'ValidPass1!'},
+            {'email': user.email, 'password': 'ValidPass123!'},
             format='json',
         )
         assert response.status_code == 400
@@ -94,7 +94,7 @@ class TestLogin:
         user = create_user(email='twofa@example.com', phone='+919876543214', two_factor_enabled=True)
         response = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'ValidPass1!'},
+            {'email': user.email, 'password': 'ValidPass123!'},
             format='json',
         )
         assert response.status_code == 200
@@ -170,15 +170,15 @@ class TestPassword:
         response = api_client.post(
             '/api/v1/auth/password/change/',
             {
-                'old_password': 'ValidPass1!',
-                'new_password': 'NewValid1!',
-                'confirm_password': 'NewValid1!',
+                'old_password': 'ValidPass123!',
+                'new_password': 'NewValid123!',
+                'confirm_password': 'NewValid123!',
             },
             format='json',
         )
         assert response.status_code == 200
         user.refresh_from_db()
-        assert user.check_password('NewValid1!')
+        assert user.check_password('NewValid123!')
         assert PasswordHistory.objects.filter(user=user).exists()
 
     def test_change_password_wrong_old(self, api_client):
@@ -187,9 +187,9 @@ class TestPassword:
         response = api_client.post(
             '/api/v1/auth/password/change/',
             {
-                'old_password': 'WrongPass1!',
-                'new_password': 'NewValid1!',
-                'confirm_password': 'NewValid1!',
+                'old_password': 'WrongPass123!',
+                'new_password': 'NewValid123!',
+                'confirm_password': 'NewValid123!',
             },
             format='json',
         )
@@ -202,9 +202,9 @@ class TestPassword:
         response = api_client.post(
             '/api/v1/auth/password/change/',
             {
-                'old_password': 'ValidPass1!',
-                'new_password': 'ValidPass1!',
-                'confirm_password': 'ValidPass1!',
+                'old_password': 'ValidPass123!',
+                'new_password': 'ValidPass123!',
+                'confirm_password': 'ValidPass123!',
             },
             format='json',
         )
@@ -219,14 +219,14 @@ class TestPassword:
             {
                 'email': user.email,
                 'otp_code': otp,
-                'new_password': 'ResetPass1!',
-                'confirm_password': 'ResetPass1!',
+                'new_password': 'ResetPass123!',
+                'confirm_password': 'ResetPass123!',
             },
             format='json',
         )
         assert response.status_code == 200
         user.refresh_from_db()
-        assert user.check_password('ResetPass1!')
+        assert user.check_password('ResetPass123!')
 
     def test_password_complexity_rules(self, api_client):
         user = create_user(email='complex@example.com', phone='+919876543223')
@@ -234,7 +234,7 @@ class TestPassword:
         response = api_client.post(
             '/api/v1/auth/password/change/',
             {
-                'old_password': 'ValidPass1!',
+                'old_password': 'ValidPass123!',
                 'new_password': 'short',
                 'confirm_password': 'short',
             },
@@ -318,7 +318,7 @@ class TestPermissions:
                 'first_name': 'New',
                 'last_name': 'User',
                 'role': 'STUDENT',
-                'password': 'ValidPass1!',
+                'password': 'ValidPass123!',
             },
             format='json',
         )
@@ -328,7 +328,7 @@ class TestPermissions:
         user = create_user(email='logout@example.com', phone='+919876543230')
         login = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'ValidPass1!'},
+            {'email': user.email, 'password': 'ValidPass123!'},
             format='json',
         )
         refresh = login.data['data']['refresh']
@@ -340,7 +340,7 @@ class TestPermissions:
         user = create_user(email='refresh@example.com', phone='+919876543231')
         login = api_client.post(
             '/api/v1/auth/login/',
-            {'email': user.email, 'password': 'ValidPass1!'},
+            {'email': user.email, 'password': 'ValidPass123!'},
             format='json',
         )
         refresh = login.data['data']['refresh']
