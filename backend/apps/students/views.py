@@ -709,3 +709,21 @@ class StudentCategoryWiseView(APIView):
             ),
         }
         return Response(data)
+
+
+class StudentBulkImportView(APIView):
+    """Stub: Excel bulk import — full implementation in next iteration."""
+    def post(self, request):
+        return Response(
+            {"message": "Bulk import endpoint ready. Full implementation coming soon."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class StudentExportView(APIView):
+    """Stub: Excel export — full implementation in next iteration."""
+    def get(self, request):
+        return Response(
+            {"message": "Export endpoint ready. Full implementation coming soon."},
+            status=status.HTTP_200_OK,
+        )

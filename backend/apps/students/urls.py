@@ -17,6 +17,8 @@ from .views import (
     StudentDocumentVerificationListView,
     StudentDocumentVerifyView,
     StudentStatisticsView,
+    StudentBulkImportView,
+    StudentExportView,
 )
 
 urlpatterns = [
@@ -36,4 +38,8 @@ urlpatterns = [
     path('<uuid:pk>/promote/', StudentPromoteView.as_view(), name='student_promote'),
     path('<uuid:pk>/documents/', StudentDocumentVerificationListView.as_view(), name='student_doc_verifications'),
     path('<uuid:pk>/documents/verify/', StudentDocumentVerifyView.as_view(), name='student_doc_verify'),
+    path('bulk-import/', StudentBulkImportView.as_view(), name='student_bulk_import'),
+    path('export/', StudentExportView.as_view(), name='student_export'),
+    path('statistics/', StudentStatisticsView.as_view(), name='student_statistics'),
+    path('category-wise/', StudentCategoryWiseView.as_view(), name='student_category_wise'),
 ]
