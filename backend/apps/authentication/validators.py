@@ -10,14 +10,14 @@ from django.utils import timezone
 
 
 PASSWORD_COMPLEXITY = re.compile(
-    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$'
 )
 
 
 def validate_password_complexity(password: str) -> None:
     if not PASSWORD_COMPLEXITY.match(password):
         raise ValidationError(
-            'Password must be at least 8 characters and include uppercase, '
+            'Password must be at least 12 characters and include uppercase, '
             'lowercase, digit, and special character.'
         )
 

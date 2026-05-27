@@ -66,7 +66,7 @@ class TwoFactorVerifySerializer(serializers.Serializer):
 class RegisterSerializer(serializers.ModelSerializer):
     """Admin-only bulk user creation."""
 
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=12)
     department = serializers.UUIDField(required=False, allow_null=True)
 
     class Meta:
@@ -113,8 +113,8 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp_code = serializers.RegexField(r'^\d{6}$')
-    new_password = serializers.CharField(write_only=True, min_length=8)
-    confirm_password = serializers.CharField(write_only=True, min_length=8)
+    new_password = serializers.CharField(write_only=True, min_length=12)
+    confirm_password = serializers.CharField(write_only=True, min_length=12)
 
     def validate(self, attrs):
         if attrs['new_password'] != attrs['confirm_password']:
