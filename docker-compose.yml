@@ -160,7 +160,7 @@ services:
         condition: service_started
     networks:
       - srtapp-network
-    command: celery -A srtapp worker -l info
+    command: celery -A config worker -l info
 
   celery-beat:
     build:
@@ -193,7 +193,7 @@ services:
         condition: service_healthy
     networks:
       - srtapp-network
-    command: celery -A srtapp beat -l info
+    command: celery -A config beat -l info
 
   frontend:
     build:
