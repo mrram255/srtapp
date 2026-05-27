@@ -9,8 +9,8 @@ export { default as api, apiClient } from "@/lib/api/client";
 export type { ApiEnvelope } from "@/lib/api/types";
 
 export function getApiErrorMessage(error: unknown, fallback = "Something went wrong."): string {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const axios = require("axios");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { default: axios } = require("axios") as typeof import("axios");
   if (axios.isAxiosError(error)) {
     if (error.code === "ERR_NETWORK") return "Cannot reach the server. Please try again.";
     const data = error.response?.data as { message?: string } | undefined;
