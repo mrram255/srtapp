@@ -597,7 +597,7 @@ class StudentPromoteView(APIView):
         except Student.DoesNotExist:
             return Response({'error': 'Student not found.'}, status=404)
 
-        current_sem = student.current_semester
+        current_sem = student.semester
         if current_sem >= 8:
             return Response(
                 {'error': 'Student already at final semester.'},
@@ -607,9 +607,9 @@ class StudentPromoteView(APIView):
             student=student, semester_number=current_sem
         ).update(promoted_to_next=True, status='passed')
 
-        student.current_semester = current_sem + 1
-        student.save(update_fields=['current_semester', 'updated_at'])
-        return Response({'message': f'Promoted to semester {student.current_semester}'})
+        student.semester = current_sem + 1
+        student.save(update_fields=["semester", "updated_at"])
+        return Response({'message': f'Promoted to semester {student.semester}'})
 
 
 class StudentDocumentVerificationListView(APIView):
@@ -669,7 +669,7 @@ class StudentStatisticsView(APIView):
         return Response({
             'total': qs.count(),
             'by_status': dict(
-                qs.values_list('status').annotate(c=Count('id')).values_list('status', 'c')
+                qs.values("student_status").annotate(c=Count("id")).values_list("student_status", "c")
             ),
             'by_category': dict(
                 qs.values_list('category').annotate(c=Count('id')).values_list('category', 'c')

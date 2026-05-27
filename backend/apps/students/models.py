@@ -101,6 +101,14 @@ class Student(CollegeScopedModel):
         return self.user.email
 
 
+    mentor = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='mentored_students',
+        help_text="Assigned faculty mentor",
+    )
+
     # ── Section 5: Additional fields ──────────────────────────────
     university_roll_number = models.CharField(
         max_length=50, unique=True, null=True, blank=True, db_index=True
