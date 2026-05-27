@@ -60,6 +60,16 @@ def student(db, student_user, college, department, branch):
         department=department, branch=branch,
         enrollment_number="TST2401001", roll_number="CSE001",
         admission_number="ADM2401001", semester=1,
+        batch_year=2024,
+        date_of_birth="2000-01-01",
+        gender="MALE",
+        address="123 Main St",
+        city="Mumbai",
+        state="Maharashtra",
+        pincode="400001",
+        emergency_contact="9000000099",
+        emergency_contact_name="Parent",
+        admission_date="2024-07-01",
     )
 
 

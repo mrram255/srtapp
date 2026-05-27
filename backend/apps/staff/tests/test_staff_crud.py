@@ -68,7 +68,7 @@ class TestStaffModel:
         assert staff_member.employee_id != ""
 
     def test_employee_id_starts_with_college_code(self, db, staff_member):
-        assert staff_member.employee_id.startswith("STC")
+        assert staff_member.employee_id.startswith("TST")
 
     def test_staff_str(self, db, staff_member):
         assert staff_member.employee_id in str(staff_member)

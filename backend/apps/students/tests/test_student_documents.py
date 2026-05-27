@@ -27,7 +27,7 @@ def student(db, college, department, branch):
     return Student.objects.create(
         user=u, college=college, department=department, branch=branch,
         enrollment_number="DOC001", roll_number="D01",
-        admission_number="ADOC01", current_semester=1,
+        admission_number="ADOC01", semester=1, batch_year=2024, date_of_birth="2000-01-01", gender="MALE", address="Addr", city="Mumbai", state="MH", pincode="400001", emergency_contact="9000000099", emergency_contact_name="Parent", admission_date="2024-07-01",
     )
 
 def auth_client(staff_user):
