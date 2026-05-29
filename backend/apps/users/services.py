@@ -4,15 +4,13 @@ import io
 import logging
 from typing import Any
 
-from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 from openpyxl import Workbook, load_workbook
 
 from apps.core.utils import encrypt_field, generate_employee_id, validate_aadhaar
+from apps.users.identity import User
 from apps.users.models import ModulePermission, Role, RolePermission, UserActivity
-
-User = get_user_model()
 logger = logging.getLogger(__name__)
 
 

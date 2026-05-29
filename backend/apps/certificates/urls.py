@@ -1,0 +1,42 @@
+from django.urls import path
+
+from .views import (
+    CertificateBulkGenerateView,
+    CertificateBulkStudentsView,
+    CertificateDownloadView,
+    CertificateIssueListView,
+    CertificateIssueRevokeView,
+    CertificateRequestApproveView,
+    CertificateRequestGenerateView,
+    CertificateRequestIssueView,
+    CertificateRequestListView,
+    CertificateRequestRejectView,
+    CertificateStatsView,
+    CertificateTemplateDetailView,
+    CertificateTemplateListView,
+    MyCertificateRequestsView,
+    MyCertificatesView,
+    PublicCertificateVerifyView,
+    StudentCertificateRequestView,
+)
+
+urlpatterns = [
+    path('', CertificateTemplateListView.as_view(), name='certificate_templates'),
+    path('templates/', CertificateTemplateListView.as_view(), name='certificate_template_list'),
+    path('templates/<uuid:pk>/', CertificateTemplateDetailView.as_view(), name='certificate_template_detail'),
+    path('request/', StudentCertificateRequestView.as_view(), name='certificate_request_create'),
+    path('requests/', CertificateRequestListView.as_view(), name='certificate_request_list'),
+    path('requests/<uuid:pk>/approve/', CertificateRequestApproveView.as_view(), name='certificate_request_approve'),
+    path('requests/<uuid:pk>/reject/', CertificateRequestRejectView.as_view(), name='certificate_request_reject'),
+    path('requests/<uuid:pk>/generate/', CertificateRequestGenerateView.as_view(), name='certificate_request_generate'),
+    path('requests/<uuid:pk>/issue/', CertificateRequestIssueView.as_view(), name='certificate_request_issue'),
+    path('issues/', CertificateIssueListView.as_view(), name='certificate_issue_list'),
+    path('issues/<uuid:pk>/revoke/', CertificateIssueRevokeView.as_view(), name='certificate_issue_revoke'),
+    path('my-requests/', MyCertificateRequestsView.as_view(), name='certificate_my_requests'),
+    path('my-certificates/', MyCertificatesView.as_view(), name='certificate_my_certificates'),
+    path('download/<uuid:pk>/', CertificateDownloadView.as_view(), name='certificate_download'),
+    path('bulk-generate/', CertificateBulkGenerateView.as_view(), name='certificate_bulk_generate'),
+    path('bulk-generate-students/', CertificateBulkStudentsView.as_view(), name='certificate_bulk_students'),
+    path('stats/', CertificateStatsView.as_view(), name='certificate_stats'),
+    path('verify/<str:code>/', PublicCertificateVerifyView.as_view(), name='certificate_public_verify'),
+]

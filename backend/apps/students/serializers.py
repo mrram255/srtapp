@@ -46,8 +46,28 @@ class StudentSerializer(serializers.ModelSerializer):
             'previous_education',
             'previous_percentage',
             'photo',
+            'signature',
             'id_card',
             'documents',
+            'student_status',
+            'abc_id',
+            'digilocker_id',
+            'hostel_resident',
+            'transport_user',
+            'library_card_number',
+            'admission_number',
+            'university_roll_number',
+            'caste',
+            'sub_category',
+            'domicile_state',
+            'mother_tongue',
+            'identification_mark',
+            'family_details',
+            'education_details',
+            'permanent_address',
+            'correspondence_address',
+            'is_address_same',
+            'mentor',
             'is_active',
             'graduation_date',
             'created_at',
@@ -113,6 +133,24 @@ class StudentCreateSerializer(serializers.ModelSerializer):
             'admission_type',
             'previous_education',
             'previous_percentage',
+            'student_status',
+            'abc_id',
+            'digilocker_id',
+            'hostel_resident',
+            'transport_user',
+            'library_card_number',
+            'admission_number',
+            'university_roll_number',
+            'caste',
+            'sub_category',
+            'domicile_state',
+            'mother_tongue',
+            'identification_mark',
+            'family_details',
+            'education_details',
+            'permanent_address',
+            'correspondence_address',
+            'is_address_same',
         ]
 
     def validate(self, data):
@@ -149,7 +187,12 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         return Student.objects.create(**validated_data)
 
 
+class StudentBulkImportSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
 class StudentDocumentSerializer(serializers.ModelSerializer):
+    file = serializers.FileField(write_only=True, required=False)
     student_name = serializers.CharField(source='student.user.full_name', read_only=True)
     verified_by_name = serializers.CharField(source='verified_by.full_name', read_only=True)
 

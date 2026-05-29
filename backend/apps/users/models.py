@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+"""
+RBAC models (Role, Module, permissions, activity).
+
+The authenticated User record lives in ``accounts.User`` (see AUTH_USER_MODEL).
+Import it via ``from apps.users.identity import User`` or ``get_user_model()``.
+"""
+
 from django.db import models
 
 from apps.core.models import TimeStampedModel

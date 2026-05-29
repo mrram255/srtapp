@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { Camera, Upload, Loader2 } from "lucide-react";
@@ -161,7 +162,7 @@ export default function ProfilePage() {
             <div className="relative shrink-0">
               <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl font-bold overflow-hidden">
                 {profile.profile_photo
-                  ? <img src={profile.profile_photo} alt="Photo" className="w-full h-full object-cover" />
+                  ? <Image src={profile.profile_photo} alt="Photo" width={200} height={200} className="w-full h-full object-cover" />
                   : initials}
               </div>
               {photoUploading && (
@@ -249,7 +250,7 @@ export default function ProfilePage() {
             {/* Signature preview */}
             {profile.signature ? (
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 flex items-center justify-center min-h-[100px] mb-4">
-                <img src={profile.signature} alt="Signature" className="max-h-24 object-contain" />
+                <Image src={profile.signature} alt="Signature" width={200} height={96} className="max-h-24 object-contain" />
               </div>
             ) : (
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center mb-4 bg-gray-50">

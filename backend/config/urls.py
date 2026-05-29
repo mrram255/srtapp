@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/v1/', include('apps.users.urls')),
     path('api/v1/', include('apps.institutions.urls')),
     path('api/v1/', include('apps.academic.urls')),
+    path('api/v1/certificates/', include('apps.certificates.urls')),
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/colleges/', include('apps.colleges.urls')),
     path('api/v1/students/', include('apps.students.urls')),
@@ -24,6 +25,10 @@ urlpatterns = [
     path('api/v1/attendance/', include('apps.attendance.urls')),
     path('api/v1/forum/', include('apps.forum.urls')),
     path('api/v1/analytics/', include('apps.analytics.urls')),
+    path('api/v1/dashboard/', include('apps.dashboard.urls')),
+    path('api/v1/governance/', include('apps.governance.urls')),
+    path('api/v1/approvals/', include('apps.governance.urls_approvals')),
+    path('api/v1/meetings/', include('apps.governance.urls_meetings')),
     path('api/v1/study-materials/', include('apps.study_materials.urls')),
     path('api/v1/assignments/', include('apps.assignments.urls')),
     path('api/v1/exams/', include('apps.examinations.urls')),
@@ -39,8 +44,19 @@ urlpatterns = [
     path('api/v1/events/', include('apps.events.urls')),
     path('api/v1/reports/', include('apps.reports.urls')),
     path('api/v1/gate/', include('apps.gate.urls')),
+    path('api/v1/audit/', include('apps.audit.urls')),
     path('manage-portal/', admin.site.urls),
 ]
+
+try:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+    urlpatterns += [
+        path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+        path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    ]
+except ImportError:
+    pass
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

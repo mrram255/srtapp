@@ -6,8 +6,6 @@ import time
 
 from django.utils.deprecation import MiddlewareMixin
 
-from apps.core.utils import get_client_ip
-
 logger = logging.getLogger('audit')
 _thread_locals = threading.local()
 
@@ -53,29 +51,15 @@ class RequestTimingMiddleware(MiddlewareMixin):
 
 
 class AuditLogMiddleware(MiddlewareMixin):
-    """Log every API request for audit purposes."""
+    """Log every API request to file logger and AuditLog table."""
 
     def process_response(self, request, response):
-        if not request.path.startswith('/api/'):
-            return response
-
-        user = getattr(request, 'user', None)
-        user_id = str(user.pk) if user and user.is_authenticated else None
         duration_ms = None
         start = getattr(request, '_start_time', None)
         if start is not None:
             duration_ms = int((time.perf_counter() - start) * 1000)
 
-        logger.info(
-            'api_audit',
-            extra={
-                'user_id': user_id,
-                'ip_address': get_client_ip(request),
-                'endpoint': request.path,
-                'method': request.method,
-                'status_code': response.status_code,
-                'duration_ms': duration_ms,
-                'user_agent': request.META.get('HTTP_USER_AGENT', ''),
-            },
-        )
+        from apps.audit.services import log_api_request
+
+        log_api_request(request, response, duration_ms=duration_ms)
         return response

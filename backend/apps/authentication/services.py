@@ -99,9 +99,16 @@ class AuthService:
         return user, requires_2fa
 
     @classmethod
+    def _role_slug(cls, user) -> str:
+        if getattr(user, 'role_ref_id', None) and user.role_ref_id:
+            return user.role_ref.name
+        return str(user.role or '').lower().replace(' ', '_')
+
+    @classmethod
     def generate_tokens(cls, user):
         refresh = RefreshToken.for_user(user)
         refresh['role'] = user.role
+        refresh['role_slug'] = cls._role_slug(user)
         refresh['email'] = user.email
         return {
             'access_token': str(refresh.access_token),
@@ -238,6 +245,7 @@ class AuthService:
             'id': str(user.id),
             'email': user.email,
             'role': user.role,
+            'role_slug': cls._role_slug(user),
             'first_name': user.first_name,
             'last_name': user.last_name,
             'college_id': str(user.college_id) if user.college_id else None,

@@ -34,7 +34,7 @@ export default function NotificationsPage() {
       setLoading(true);
       const params: Record<string, string> = filter === "unread" ? { is_read: "false" } : {};
       const res = await notificationsApi.list(params);
-      setNotifications(res.data ?? []);
+      setNotifications(Array.isArray(res.data) ? res.data : []);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load notifications.");
     } finally {

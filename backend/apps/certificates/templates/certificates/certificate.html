@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ certificate_title }}</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 40px; color: #1e293b; }
+    .header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 16px; }
+    .title { font-size: 22px; color: #1e40af; margin: 24px 0; text-align: center; }
+    .body { font-size: 14px; line-height: 1.6; margin: 24px 0; }
+    .footer { margin-top: 40px; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; }
+    .qr { width: 100px; height: 100px; }
+    .code { font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{ college_name }}</h1>
+    <p>Official Certificate</p>
+  </div>
+  <h2 class="title">{{ certificate_title }}</h2>
+  <div class="body">
+    <p>This is to certify that <strong>{{ student_name }}</strong> (Enrollment: {{ enrollment_number }})</p>
+    <p>Department: {{ department }}</p>
+    <p>Certificate type: {{ certificate_type }}</p>
+    <p>Issued on: {{ issued_date }}</p>
+  </div>
+  <div class="footer">
+    <div>
+      <p class="code">Verification: {{ verification_code }}</p>
+      <p class="code">Blockchain hash: {{ blockchain_hash }}</p>
+      <p>{{ verify_url }}</p>
+    </div>
+    {% if qr_base64 %}
+    <img class="qr" src="data:image/png;base64,{{ qr_base64 }}" alt="QR" />
+    {% endif %}
+  </div>
+</body>
+</html>

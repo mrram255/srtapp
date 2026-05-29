@@ -1,25 +1,12 @@
 import { jwtVerify } from "jose/jwt/verify";
 
-import type { Role } from "./constants";
-
 export type JwtSession = {
-  role: Role;
+  role: string;
+  roleSlug?: string;
   userId: string;
   email?: string;
   collegeId?: string;
 };
-
-const KNOWN_ROLES: Role[] = [
-  "SUPER_ADMIN",
-  "ADMIN",
-  "HOD",
-  "TEACHER",
-  "STUDENT",
-  "PARENT",
-  "ACCOUNTANT",
-  "LIBRARIAN",
-  "SECURITY",
-];
 
 /** Read signing secret once; must match backend JWT_SIGNING_KEY. */
 export function getJwtSecret(): Uint8Array | null {
@@ -35,10 +22,9 @@ export function getJwtSecret(): Uint8Array | null {
   return new TextEncoder().encode(raw);
 }
 
-function normalizeRole(value: unknown): Role | null {
+function normalizeRole(value: unknown): string | null {
   if (typeof value !== "string" || !value.trim()) return null;
-  const normalized = value.trim().toUpperCase().replace(/-/g, "_");
-  return KNOWN_ROLES.includes(normalized as Role) ? (normalized as Role) : null;
+  return value.trim().toUpperCase().replace(/-/g, "_");
 }
 
 export async function verifyAccessToken(token: string): Promise<JwtSession | null> {
@@ -60,8 +46,14 @@ export async function verifyAccessToken(token: string): Promise<JwtSession | nul
     const collegeId =
       collegeRaw === undefined || collegeRaw === null ? undefined : String(collegeRaw);
 
+    const roleSlug =
+      typeof payload.role_slug === "string" && payload.role_slug.trim()
+        ? payload.role_slug.trim().toLowerCase()
+        : undefined;
+
     return {
       role,
+      roleSlug,
       userId,
       email: typeof payload.email === "string" ? payload.email : undefined,
       collegeId,

@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.views import APIView
 
+from apps.authentication.models import UserSession
 from apps.authentication.services import AuthService
 from apps.core.permissions import HasModulePermission
 from apps.core.responses import APIResponse
@@ -74,6 +75,8 @@ class UserViewSet(viewsets.ModelViewSet):
             'list': 'view',
             'retrieve': 'view',
             'activity': 'view',
+            'sessions': 'view',
+            'kill_session': 'edit',
             'export': 'export',
             'import_template': 'export',
             'create': 'create',
@@ -163,6 +166,50 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         activities = UserActivity.objects.filter(user=user).order_by('-created_at')[:100]
         return APIResponse.success(UserActivitySerializer(activities, many=True).data)
+
+    @action(detail=True, methods=['get'])
+    def sessions(self, request, pk=None):
+        """List active login sessions for a user (super-admin user management)."""
+        user = self.get_object()
+        sessions = (
+            UserSession.objects.filter(user=user, is_active=True)
+            .order_by('-last_activity')[:50]
+        )
+        data = [
+            {
+                'id': str(item.id),
+                'session_key': str(item.session_key),
+                'ip_address': item.ip_address,
+                'user_agent': item.user_agent,
+                'device_type': item.device_type,
+                'location': item.location,
+                'is_active': item.is_active,
+                'last_activity': item.last_activity,
+                'created_at': item.created_at,
+                'expired_at': item.expired_at,
+            }
+            for item in sessions
+        ]
+        return APIResponse.success(data)
+
+    @action(detail=True, methods=['post'], url_path='sessions/kill')
+    def kill_session(self, request, pk=None):
+        user = self.get_object()
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return APIResponse.error(message='session_id is required.', status=400)
+        session = UserSession.objects.filter(user=user, pk=session_id, is_active=True).first()
+        if not session:
+            return APIResponse.error(message='Session not found.', status=404)
+        AuthService.invalidate_session(session.session_key)
+        UserService.log_activity(
+            request.user,
+            'update',
+            module='users',
+            description=f'Terminated session for {user.email}',
+            request=request,
+        )
+        return APIResponse.success(message='Session terminated.')
 
     @action(detail=True, methods=['post'], url_path='reset-password')
     def reset_password(self, request, pk=None):

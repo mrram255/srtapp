@@ -38,9 +38,24 @@ def student(db, college, department, branch):
     from apps.students.models import Student
     u = User.objects.create_user(email="bulk_stu@t.com", password="x", role="STUDENT")
     return Student.objects.create(
-        user=u, college=college, department=department, branch=branch,
-        enrollment_number="BLK001", roll_number="B01",
-        admission_number="ABLK01", current_semester=1,
+        user=u,
+        college=college,
+        department=department,
+        branch=branch,
+        enrollment_number="BLK001",
+        roll_number="B01",
+        admission_number="ABLK01",
+        semester=1,
+        batch_year=2024,
+        date_of_birth="2000-01-01",
+        gender="MALE",
+        address="Addr",
+        city="City",
+        state="ST",
+        pincode="400001",
+        emergency_contact="9000000001",
+        emergency_contact_name="Guardian",
+        admission_date="2024-07-01",
     )
 
 
@@ -85,3 +100,16 @@ class TestStudentBulkImport:
         assert "total" in response.data
         assert "by_status" in response.data
         assert "by_category" in response.data
+
+    def test_bulk_import_template_download(self, auth_client):
+        response = auth_client.get("/api/v1/students/bulk-import/")
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response['Content-Type']
+            == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    def test_export_returns_excel(self, auth_client, student):
+        response = auth_client.get("/api/v1/students/export/")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.content) > 100

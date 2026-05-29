@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
 
           return {
             requires2fa: false,
-            redirectTo: getDashboardPathForRole(result.user.role),
+            redirectTo: getDashboardPathForRole(result.user.role, result.user.role_slug),
           };
         } catch (error) {
           set({ isLoading: false });
@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>()(
             pendingSessionKey: null,
             isLoading: false,
           });
-          return getDashboardPathForRole(result.user.role);
+          return getDashboardPathForRole(result.user.role, result.user.role_slug);
         } catch (error) {
           set({ isLoading: false });
           throw error;

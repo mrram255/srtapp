@@ -4,12 +4,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
+import { getDashboardPathForRole } from "@/lib/auth";
 import { useAuthStore } from "@/stores/authStore";
 
 type ProtectedRouteProps = {
   children: ReactNode;
   roles?: string[];
   fallback?: string;
+  /** Defaults to the signed-in user's role home dashboard. */
   unauthorized?: string;
 };
 
@@ -17,7 +19,7 @@ export function ProtectedRoute({
   children,
   roles,
   fallback = "/login",
-  unauthorized = "/dashboard/forbidden",
+  unauthorized,
 }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, user, hydrate, isLoading } = useAuthStore();
@@ -54,7 +56,7 @@ export function ProtectedRoute({
   }
 
   if (roles && roles.length > 0 && !roles.includes(user.role)) {
-    router.replace(unauthorized);
+    router.replace(unauthorized ?? getDashboardPathForRole(user.role, user.role_slug));
     return null;
   }
 

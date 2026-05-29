@@ -4,6 +4,7 @@ import django_filters
 from django.db.models import Count, Q
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
@@ -45,7 +46,18 @@ from apps.core.responses import APIResponse
 
 
 def _super_admin_write_permissions(view, action):
-    if action in {'list', 'retrieve', 'programs', 'faculty', 'stats', 'subjects', 'batches', 'calendar'}:
+    if action in {
+        'list',
+        'retrieve',
+        'programs',
+        'faculty',
+        'stats',
+        'subjects',
+        'batches',
+        'calendar',
+        'bulk_import',
+        'import_template',
+    }:
         return [IsAuthenticated()]
     return [IsAuthenticated(), IsSuperAdmin()]
 
@@ -192,13 +204,24 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
+        from django.contrib.auth import get_user_model
+
+        from apps.students.models import Student
+
         dept = self.get_object()
+        User = get_user_model()
         return APIResponse.success(
             {
                 'department_id': str(dept.id),
                 'programs': Program.objects.filter(department=dept, is_active=True).count(),
                 'batches': Batch.objects.filter(program__department=dept, is_active=True).count(),
                 'subjects': CurriculumSubject.objects.filter(program__department=dept, is_active=True).count(),
+                'students': Student.objects.filter(department=dept, is_deleted=False, is_active=True).count(),
+                'faculty': User.objects.filter(
+                    department=dept,
+                    is_deleted=False,
+                    is_active=True,
+                ).count(),
             }
         )
 
@@ -494,6 +517,50 @@ class SubjectViewSet(viewsets.ModelViewSet):
         obj.is_active = False
         obj.save(update_fields=['is_active'])
         return APIResponse.success(message='Subject deactivated.')
+
+    @action(detail=False, methods=['get'], url_path='import-template')
+    def import_template(self, request):
+        from django.http import HttpResponse
+
+        from apps.academic.services import SubjectBulkService
+
+        content = SubjectBulkService.import_template()
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="subject_import_template.xlsx"'
+        return response
+
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='bulk-import',
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def bulk_import(self, request):
+        from apps.academic.services import SubjectBulkService
+        from apps.users.serializers import BulkImportSerializer
+
+        serializer = BulkImportSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(message='Validation Error', errors=serializer.errors, status=400)
+
+        college = request.user.college
+        if request.user.role == 'SUPER_ADMIN':
+            college_id = request.data.get('college')
+            if college_id:
+                from apps.colleges.models import College
+
+                college = College.objects.filter(pk=college_id, is_deleted=False).first()
+        if not college:
+            return APIResponse.error(message='College required.', status=400)
+
+        try:
+            result = SubjectBulkService.bulk_import(serializer.validated_data['file'], college)
+        except ValueError as exc:
+            return APIResponse.error(message=str(exc), status=400)
+        return APIResponse.success(result, message='Subject bulk import completed.')
 
 
 class HolidayViewSet(viewsets.ModelViewSet):

@@ -11,6 +11,16 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="${BACKUP_ROOT:-$HOME/srtapp-backups}"
 
+# Auto-sync guard: require a user-controlled enable file to actually run backups.
+# This prevents cron from taking backups unless the user explicitly enables them.
+# Create the file to enable: `touch ~/.srtapp-auto-backup-enabled`
+ENABLE_FILE="${AUTO_SYNC_ENABLE_FILE:-$HOME/.srtapp-auto-backup-enabled}"
+if [[ ! -f "$ENABLE_FILE" ]]; then
+  mkdir -p "$LOG_DIR"
+  log "Auto-sync disabled — create $ENABLE_FILE to enable scheduled backups."
+  exit 0
+fi
+
 log() { printf '[auto-sync] %s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
 
 mkdir -p "$LOG_DIR"

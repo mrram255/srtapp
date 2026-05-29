@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, JetBrains_Mono, Playfair_Display, Bebas_Neue } from "next/font/google";
+import { DM_Sans, JetBrains_Mono, Playfair_Display, Bebas_Neue, Geist } from "next/font/google";
 
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import { Providers } from "@/components/shared/Providers";
 
 const fontNumeric = Bebas_Neue({
   subsets: ["latin"],
@@ -10,12 +12,7 @@ const fontNumeric = Bebas_Neue({
   display: "swap",
 });
 
-const fontSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-sans",
-  display: "swap",
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const fontDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -54,9 +51,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} ${fontNumeric.variable}`}
+      className={cn(fontDisplay.variable, fontMono.variable, fontNumeric.variable, "font-sans", geist.variable)}
     >
-      <body className="min-h-screen bg-background font-sans antialiased">{children}</body>
+      <body className="min-h-screen bg-background font-sans antialiased"><Providers>{children}</Providers></body>
     </html>
   );
 }

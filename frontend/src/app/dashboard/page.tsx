@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { ACCESS_COOKIE, ROLE_HOME_SEGMENT } from "@/lib/auth/constants";
+import { ACCESS_COOKIE } from "@/lib/auth/constants";
 import { verifyAccessToken } from "@/lib/auth/jwt";
+import { resolveDashboardPath } from "@/lib/auth/role-routes";
 
 export default async function DashboardHomePage() {
   const cookieStore = await cookies();
@@ -12,6 +13,5 @@ export default async function DashboardHomePage() {
   const session = await verifyAccessToken(token);
   if (!session) redirect("/login");
 
-  const segment = ROLE_HOME_SEGMENT[session.role] ?? "student";
-  redirect(`/dashboard/${segment}`);
+  redirect(resolveDashboardPath(session.role, session.roleSlug));
 }

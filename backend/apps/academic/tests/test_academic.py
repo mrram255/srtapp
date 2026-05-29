@@ -103,7 +103,16 @@ class TestDepartment:
         client = auth_client(api_client, super_admin_user)
         response = client.get(f'/api/v1/departments/{department.id}/stats/')
         assert response.status_code == 200
-        assert 'programs' in response.data['data']
+        data = response.data['data']
+        assert 'programs' in data
+        assert 'students' in data
+        assert 'faculty' in data
+
+    def test_subject_bulk_import_template(self, api_client, super_admin_user):
+        client = auth_client(api_client, super_admin_user)
+        response = client.get('/api/v1/subjects/import-template/')
+        assert response.status_code == 200
+        assert len(response.content) > 50
 
 
 @pytest.mark.django_db

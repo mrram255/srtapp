@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import api from "@/lib/api/client";
@@ -117,7 +118,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-5">
             <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl font-bold">
               {profile.profile_photo ? (
-                <img src={profile.profile_photo} alt="Photo" className="w-full h-full object-cover rounded-2xl" />
+                <Image src={profile.profile_photo} alt="Photo" width={200} height={200} className="w-full h-full object-cover rounded-2xl" />
               ) : initials}
             </div>
             <div className="flex-1">

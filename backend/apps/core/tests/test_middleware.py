@@ -32,13 +32,9 @@ def test_request_timing_middleware_adds_header(rf):
     assert 'X-Response-Time-Ms' in response
 
 
-def test_audit_log_middleware_logs_api_requests(rf, monkeypatch):
-    messages = []
-
-    def fake_info(message, *args, **kwargs):
-        messages.append(message)
-
-    monkeypatch.setattr('apps.core.middleware.logger.info', fake_info)
+@pytest.mark.django_db
+def test_audit_log_middleware_logs_api_requests(rf):
+    from apps.audit.models import AuditLog
 
     def get_response(request):
         from django.http import HttpResponse
@@ -46,7 +42,9 @@ def test_audit_log_middleware_logs_api_requests(rf, monkeypatch):
         return HttpResponse('ok', status=200)
 
     middleware = AuditLogMiddleware(get_response)
-    request = rf.get('/api/v1/auth/login/')
+    request = rf.get('/api/v1/students/')
     request.META['REMOTE_ADDR'] = '127.0.0.1'
+    request.META['HTTP_USER_AGENT'] = 'pytest'
+    request.user = type('Anon', (), {'is_authenticated': False})()
     middleware(request)
-    assert 'api_audit' in messages
+    assert AuditLog.objects.filter(request_path='/api/v1/students/', module='students').exists()

@@ -64,7 +64,8 @@ class MessageListView(BaseAPIView):
     def get(self, request):
         thread_id = request.query_params.get('thread')
         if not thread_id:
-            return APIResponse.error(message='Thread ID required.')
+            queryset = _thread_queryset_for_user(request.user).select_related('created_by').prefetch_related('participants')
+            return APIResponse.paginated(queryset, MessageThreadSerializer, request)
 
         thread = MessageThread.objects.filter(pk=thread_id, is_deleted=False).first()
         if not thread:

@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from apps.colleges.models import Branch, Department
 
-from .models import AdmissionApplication
+from .models import AdmissionApplication, AdmissionCycle, AdmissionInquiry, MeritList
 
 
 class AdmissionApplicationSerializer(serializers.ModelSerializer):
@@ -106,3 +106,46 @@ class AdmissionApplicationWriteSerializer(serializers.ModelSerializer):
         if not num:
             validated_data['application_number'] = f'APP-{uuid.uuid4().hex[:12].upper()}'
         return super().create(validated_data)
+
+
+class AdmissionCycleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdmissionCycle
+        fields = ['id', 'college', 'name', 'academic_year', 'start_date', 'end_date', 'is_active', 'created_at']
+        read_only_fields = ['id', 'college', 'created_at']
+
+
+class AdmissionInquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdmissionInquiry
+        fields = [
+            'id',
+            'college',
+            'name',
+            'email',
+            'phone',
+            'source',
+            'status',
+            'department',
+            'notes',
+            'assigned_to',
+            'application',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'college', 'assigned_to', 'created_at']
+
+
+class MeritListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MeritList
+        fields = [
+            'id',
+            'college',
+            'cycle',
+            'title',
+            'department',
+            'published_at',
+            'is_published',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'college', 'published_at', 'created_at']

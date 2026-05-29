@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Eye, EyeOff, Loader2, School } from "lucide-react";
 
@@ -61,7 +62,7 @@ export function LoginForm() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center">
-            <img src="/logo.png" alt="SRT College" className="w-24 h-24 object-contain mix-blend-multiply" onError={(e) => { e.currentTarget.style.display="none"; }} />
+            <Image src="/logo.png" alt="SRT College" width={96} height={96} className="w-24 h-24 object-contain mix-blend-multiply" />
           </div>
           <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-primary">
             SRT College, Dhmari

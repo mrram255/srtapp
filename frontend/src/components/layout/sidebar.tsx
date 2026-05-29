@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   BarChart3, BedDouble, Bell, BookOpen, Briefcase, Bus,
@@ -10,6 +11,7 @@ import {
   Library, LogOut, MessageSquare, School, Settings, ShieldCheck,
   Users, UtensilsCrossed,
 } from "lucide-react";
+import { getDashboardPathForRole } from "@/lib/auth";
 import { cn, getRoleLabel } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 import { useUIStore } from "@/store/ui-store";
@@ -48,8 +50,11 @@ const navItems: NavItem[] = [
   { label: "Gate Log", href: "/dashboard/gate", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN","SECURITY"] },
   { label: "ID Card", href: "/dashboard/id-card", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN","HOD","TEACHER","STUDENT"] },
   { label: "Settings", href: "/dashboard/settings", icon: <Settings className="h-5 w-5" />, roles: ["SUPER_ADMIN","ADMIN"] },
-  { label: "Users", href: "/dashboard/users", icon: <Users className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
-  { label: "Roles", href: "/dashboard/roles", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Users", href: "/super-admin/users", icon: <Users className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Bulk notifications", href: "/super-admin/notifications", icon: <Bell className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Audit log", href: "/super-admin/audit-log", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Settings", href: "/super-admin/settings", icon: <Settings className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
+  { label: "Roles", href: "/super-admin/roles", icon: <ShieldCheck className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
   { label: "Institution", href: "/dashboard/institution", icon: <School className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
   { label: "Academic Config", href: "/dashboard/academic", icon: <CalendarDays className="h-5 w-5" />, roles: ["SUPER_ADMIN"] },
 ];
@@ -66,9 +71,12 @@ export function Sidebar() {
   return (
     <div className={cn("flex h-screen flex-col border-r border-border bg-surface transition-all duration-300", sidebarOpen ? "w-64" : "w-20")}>
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
+        <Link
+          href={user ? getDashboardPathForRole(user.role, user.role_slug) : "/dashboard"}
+          className="flex min-w-0 items-center gap-3"
+        >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden bg-white border border-gray-200 shadow-sm">
-            <img src="/logo.png" alt="SRT College" className="w-9 h-9 object-contain" onError={(e) => { e.currentTarget.style.display="none"; }} />
+            <Image src="/logo.png" alt="SRT College" width={36} height={36} className="w-9 h-9 object-contain" />
           </div>
           {sidebarOpen ? (
             <div className="flex min-w-0 flex-col">

@@ -43,8 +43,17 @@ def make_user(email, role, n=1):
 
 
 @pytest.fixture
-def staff_user(db):
-    return make_user("staff@test.com", "ADMIN", n=1)
+def staff_user(db, college):
+    from apps.accounts.models import User
+    return User.objects.create_user(
+        email="staff@test.com",
+        password="testpass123",
+        role="ADMIN",
+        phone="9000000001",
+        first_name="Test",
+        last_name="User",
+        college=college,
+    )
 
 
 @pytest.fixture

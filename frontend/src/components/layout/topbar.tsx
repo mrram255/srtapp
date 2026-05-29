@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  Bell, ChevronDown, LogOut, Menu, Moon, Search, Settings, Sun, User,
+  ChevronDown, LogOut, Menu, Moon, Search, Settings, Sun, User,
 } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { generateAvatarFallback } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 import { useUIStore } from "@/store/ui-store";
@@ -17,8 +19,6 @@ export function Topbar() {
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
@@ -73,45 +73,7 @@ export function Topbar() {
           {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </button>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" aria-hidden />
-          </button>
-          {showNotifications && (
-            <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-border bg-surface shadow-elevated">
-              <div className="border-b border-border p-4">
-                <h3 className="font-semibold text-foreground">Notifications</h3>
-              </div>
-              <div className="max-h-96 overflow-y-auto p-2">
-                <div className="rounded-lg p-3 hover:bg-muted">
-                  <p className="text-sm font-medium text-foreground">New assignment</p>
-                  <p className="mt-1 text-xs text-muted-foreground">You have a new assignment posted.</p>
-                  <p className="mt-1 text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-                <div className="rounded-lg p-3 hover:bg-muted">
-                  <p className="text-sm font-medium text-foreground">Fee reminder</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Semester fee due soon.</p>
-                  <p className="mt-1 text-xs text-muted-foreground">5 hours ago</p>
-                </div>
-              </div>
-              <div className="border-t border-border p-3">
-                <Link
-                  href="/dashboard/notifications"
-                  className="block text-center text-sm text-accent hover:underline"
-                  onClick={() => setShowNotifications(false)}
-                >
-                  View all
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
+        <NotificationBell />
 
         <div className="relative">
           <button
@@ -121,7 +83,7 @@ export function Topbar() {
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white overflow-hidden">
               {user?.profile_photo
-                ? <img src={user.profile_photo} alt={displayName} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display="none"; e.currentTarget.nextElementSibling?.removeAttribute("style"); }} />
+                ? <Image src={user.profile_photo} alt={displayName} width={40} height={40} className="w-full h-full object-cover" />
                 : null}
               <span style={user?.profile_photo ? {display:"none"} : {}}>{generateAvatarFallback(displayName)}</span>
             </div>

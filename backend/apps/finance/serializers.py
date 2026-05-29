@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import FeePayment, FeeStructure
+from .models import FeePayment, FeeStructure, StudentFeeAccount
 
 
 class FeeStructureSerializer(serializers.ModelSerializer):
@@ -85,3 +85,25 @@ class FeePaymentWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Student and fee structure must belong to the same college.')
         attrs['college'] = student.college
         return attrs
+
+
+class StudentFeeAccountSerializer(serializers.ModelSerializer):
+    student_enrollment = serializers.CharField(source='student.enrollment_number', read_only=True)
+
+    class Meta:
+        model = StudentFeeAccount
+        fields = [
+            'id',
+            'college',
+            'student',
+            'student_enrollment',
+            'fee_structure',
+            'total_due',
+            'total_paid',
+            'total_discount',
+            'balance',
+            'status',
+            'due_date',
+            'created_at',
+        ]
+        read_only_fields = fields

@@ -5,10 +5,15 @@ import {
   ACCESS_COOKIE,
   DASHBOARD_SEGMENT_ROLES,
   REFRESH_COOKIE,
-  ROLE_HOME_SEGMENT,
   type Role,
 } from "@/lib/auth/constants";
 import { verifyAccessToken } from "@/lib/auth/jwt";
+import {
+  canAccessRoutePrefix,
+  legacyDashboardRedirect,
+  resolveDashboardPath,
+  ROLE_ROUTE_PREFIXES,
+} from "@/lib/auth/role-routes";
 import { refreshSessionCookies } from "@/lib/auth/session";
 
 function normalizePathname(pathname: string) {
@@ -48,11 +53,19 @@ function redirectToLogin(request: NextRequest, pathname: string) {
   return res;
 }
 
-function attachSessionHeaders(res: NextResponse, session: { userId: string; role: string; collegeId?: string }) {
+function attachSessionHeaders(
+  res: NextResponse,
+  session: { userId: string; role: string; collegeId?: string; roleSlug?: string },
+) {
   res.headers.set("x-user-id", session.userId);
   res.headers.set("x-user-role", session.role);
+  res.headers.set("x-user-role-slug", session.roleSlug ?? "");
   res.headers.set("x-college-id", session.collegeId ?? "");
   return res;
+}
+
+function roleHomeUrl(request: NextRequest, session: { role: string; roleSlug?: string }) {
+  return new URL(resolveDashboardPath(session.role, session.roleSlug), request.url);
 }
 
 export async function middleware(request: NextRequest) {
@@ -76,7 +89,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/login")) {
     if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(roleHomeUrl(request, session));
     }
     return NextResponse.next();
   }
@@ -92,11 +105,31 @@ export async function middleware(request: NextRequest) {
   let res = refreshedResponse ?? NextResponse.next();
   res = attachSessionHeaders(res, session);
 
+  if (pathname === "/dashboard") {
+    return NextResponse.redirect(roleHomeUrl(request, session));
+  }
+
+  const legacyHome = legacyDashboardRedirect(pathname);
+  if (legacyHome) {
+    return NextResponse.redirect(new URL(legacyHome, request.url));
+  }
+
+  const rolePrefixMatch = pathname.match(/^\/([^/]+)(\/|$)/);
+  if (rolePrefixMatch) {
+    const prefix = rolePrefixMatch[1];
+    if (ROLE_ROUTE_PREFIXES.includes(prefix)) {
+      if (!canAccessRoutePrefix(session.role, prefix)) {
+        return NextResponse.redirect(roleHomeUrl(request, session));
+      }
+      return res;
+    }
+  }
+
   if (!pathname.startsWith("/dashboard")) {
     return res;
   }
 
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/forbidden")) {
+  if (pathname.startsWith("/dashboard/forbidden")) {
     return res;
   }
 
@@ -108,8 +141,7 @@ export async function middleware(request: NextRequest) {
   const segment = match[1];
   const allowed = DASHBOARD_SEGMENT_ROLES[segment];
   if (!allowed || !allowed.includes(session.role as Role)) {
-    const homeSegment = ROLE_HOME_SEGMENT[session.role] ?? "student";
-    return NextResponse.redirect(new URL(`/dashboard/${homeSegment}`, request.url));
+    return NextResponse.redirect(roleHomeUrl(request, session));
   }
 
   return res;

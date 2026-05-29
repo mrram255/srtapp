@@ -82,7 +82,7 @@ def _dashboard_metrics(student):
 
 
 class StudentListView(BaseAPIView):
-    allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'HOD', 'TEACHER']
+    allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'REGISTRAR', 'HOD', 'TEACHER']
 
     def get(self, request):
         queryset = Student.objects.filter(is_deleted=False)
@@ -275,6 +275,18 @@ class StudentDocumentListView(BaseAPIView):
             if request.user.role == 'STUDENT' and student.user_id != request.user.id:
                 return APIResponse.error(message='Access denied.', status=403)
 
+        upload = request.FILES.get('file') or serializer.validated_data.pop('file', None)
+        if upload:
+            from .services import StudentService
+
+            file_url = StudentService.upload_student_file(upload, folder='students/documents')
+            serializer.validated_data['file_url'] = file_url
+            serializer.validated_data['file_name'] = upload.name
+            serializer.validated_data['file_size'] = upload.size
+            serializer.validated_data['mime_type'] = upload.content_type or 'application/octet-stream'
+        elif not serializer.validated_data.get('file_url'):
+            return APIResponse.error(message='file or file_url required.', status=400)
+
         serializer.validated_data['college'] = college
         doc = serializer.save(college=college)
         return APIResponse.success(
@@ -456,9 +468,6 @@ class StudentPhotoUploadView(BaseAPIView):
     allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'HOD', 'STUDENT']
 
     def post(self, request):
-        import os
-        from django.core.files.storage import default_storage
-
         # Student object nikalo
         if request.user.role == 'STUDENT':
             try:
@@ -487,22 +496,14 @@ class StudentPhotoUploadView(BaseAPIView):
         if photo.size > 50 * 1024:
             return APIResponse.error(message='Photo must be under 50KB.', status=400)
 
-        ext = os.path.splitext(photo.name)[1].lower()
-        filename = f'students/photos/{student.id}{ext}'
+        from .services import StudentService
 
-        # Purani file delete karo agar hai
-        if student.photo:
-            try:
-                default_storage.delete(student.photo)
-            except Exception:
-                pass
-
-        saved_path = default_storage.save(filename, photo)
-        student.photo = saved_path
+        url = StudentService.upload_student_file(photo, folder='students/photos')
+        student.photo = url
         student.save(update_fields=['photo'])
 
         return APIResponse.success(
-            data={'photo': saved_path},
+            data={'photo': url},
             message='Photo uploaded successfully.',
         )
 
@@ -512,9 +513,6 @@ class StudentSignatureUploadView(BaseAPIView):
     allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'STUDENT']
 
     def post(self, request):
-        import os
-        from django.core.files.storage import default_storage
-
         if request.user.role == 'STUDENT':
             try:
                 student = request.user.student_profile
@@ -541,21 +539,14 @@ class StudentSignatureUploadView(BaseAPIView):
         if signature.size > 50 * 1024:
             return APIResponse.error(message='Signature must be under 50KB.', status=400)
 
-        ext = os.path.splitext(signature.name)[1].lower()
-        filename = f'students/signatures/{student.id}{ext}'
+        from .services import StudentService
 
-        if student.signature:
-            try:
-                default_storage.delete(student.signature)
-            except Exception:
-                pass
-
-        saved_path = default_storage.save(filename, signature)
-        student.signature = saved_path
+        url = StudentService.upload_student_file(signature, folder='students/signatures')
+        student.signature = url
         student.save(update_fields=['signature'])
 
         return APIResponse.success(
-            data={'signature': saved_path},
+            data={'signature': url},
             message='Signature uploaded successfully.',
         )
 
@@ -711,19 +702,61 @@ class StudentCategoryWiseView(APIView):
         return Response(data)
 
 
-class StudentBulkImportView(APIView):
-    """Stub: Excel bulk import — full implementation in next iteration."""
+class StudentBulkImportView(BaseAPIView):
+    allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'REGISTRAR']
+
     def post(self, request):
-        return Response(
-            {"message": "Bulk import endpoint ready. Full implementation coming soon."},
-            status=status.HTTP_200_OK,
-        )
+        from .serializers import StudentBulkImportSerializer
+        from .services import StudentService
 
+        serializer = StudentBulkImportSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(message='Invalid file.', errors=serializer.errors, status=400)
 
-class StudentExportView(APIView):
-    """Stub: Excel export — full implementation in next iteration."""
+        college = request.user.college
+        if request.user.role == 'SUPER_ADMIN':
+            college_id = request.data.get('college') or request.query_params.get('college')
+            if college_id:
+                from apps.colleges.models import College
+                college = College.objects.filter(pk=college_id, is_deleted=False).first()
+        if not college:
+            return APIResponse.error(message='College context required.', status=400)
+
+        try:
+            result = StudentService.bulk_import(serializer.validated_data['file'], college, created_by=request.user)
+        except ValueError as exc:
+            return APIResponse.error(message=str(exc), status=400)
+        return APIResponse.success(result, message='Bulk import completed.')
+
     def get(self, request):
-        return Response(
-            {"message": "Export endpoint ready. Full implementation coming soon."},
-            status=status.HTTP_200_OK,
+        from django.http import HttpResponse
+        from .services import StudentService
+
+        content = StudentService.import_template()
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
+        response['Content-Disposition'] = 'attachment; filename="student_import_template.xlsx"'
+        return response
+
+
+class StudentExportView(BaseAPIView):
+    allowed_roles = ['SUPER_ADMIN', 'ADMIN', 'REGISTRAR', 'HOD']
+
+    def get(self, request):
+        from django.http import HttpResponse
+        from .services import StudentService
+
+        queryset = Student.objects.filter(is_deleted=False).select_related('user', 'department', 'branch')
+        queryset = self.scope_to_role(queryset, request.user)
+        college_id = request.query_params.get('college')
+        if college_id:
+            queryset = queryset.filter(college_id=college_id)
+        content = StudentService.export_students(queryset)
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="students_export.xlsx"'
+        return response

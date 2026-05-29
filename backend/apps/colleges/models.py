@@ -1,3 +1,13 @@
+"""
+College scope hierarchy (single source for tenant + org structure):
+
+  College → Department → Branch → AcademicYear
+
+Programs, batches, subjects, and calendar live in ``apps.academic`` and reference
+``colleges.*`` FKs. Institution branding/profile may also exist in ``apps.institutions``
+(one-to-one with College) — do not duplicate Department/Branch there.
+"""
+
 from django.db import models
 
 from apps.core.models import BaseModel

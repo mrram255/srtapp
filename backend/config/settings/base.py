@@ -43,6 +43,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_redis',
     'django_filters',
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -61,9 +62,12 @@ LOCAL_APPS = [
     'apps.assignments',
     'apps.study_materials',
     'apps.analytics',
+    'apps.dashboard',
+    'apps.governance',
     'apps.forum',
     'apps.examinations',
     'apps.finance',
+    'apps.certificates',
     'apps.library',
     'apps.notifications',
     'apps.messaging',
@@ -75,6 +79,7 @@ LOCAL_APPS = [
     'apps.events',
     'apps.reports',
     'apps.gate',
+    'apps.audit',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -211,6 +216,14 @@ REST_FRAMEWORK = {
         'password_reset': '3/min',
         'email_verify': '5/min',
     },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SRTAPP API',
+    'DESCRIPTION': 'College ERP REST API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # ── JWT SETTINGS ──────────────────────────────────────────
@@ -261,6 +274,17 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 3600
 
+CELERY_BEAT_SCHEDULE = {
+    'refresh-dashboard-cache': {
+        'task': 'apps.dashboard.tasks.refresh_dashboard_cache_task',
+        'schedule': 300.0,
+    },
+}
+
+# ── RAZORPAY ──────────────────────────────────────────────
+RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='')
+RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='')
+
 # ── FILE UPLOADS ──────────────────────────────────────────
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
@@ -282,6 +306,15 @@ AWS_S3_ENDPOINT_URL = env('MINIO_ENDPOINT', default='')
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'private'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
+
+# ── AUDIT ────────────────────────────────────────────────
+AUDIT_LOG_DB_ENABLED = env.bool('AUDIT_LOG_DB_ENABLED', default=True)
+AUDIT_LOG_SKIP_PATH_PREFIXES = [
+    '/health/',
+    '/api/v1/health/',
+    '/__debug__/',
+    '/silk/',
+]
 
 # ── LOGGING ──────────────────────────────────────────────
 LOGGING = {

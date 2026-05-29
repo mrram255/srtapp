@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import api from "@/lib/api/client";
@@ -126,7 +127,7 @@ export default function IDCardPage() {
             <div className="flex-shrink-0">
               <div className="w-24 h-28 bg-gray-100 rounded-xl overflow-hidden border-2 border-blue-100 flex items-center justify-center">
                 {card.profile_photo ? (
-                  <img src={card.profile_photo} alt="Photo" className="w-full h-full object-cover" />
+                  <Image src={card.profile_photo} alt="Photo" width={200} height={200} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-5xl">👤</span>
                 )}

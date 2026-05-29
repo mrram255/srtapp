@@ -1,6 +1,6 @@
 import { api, type ApiEnvelope } from "@/lib/api";
 import { clearMemoryAccessToken, setMemoryAccessToken } from "@/lib/api/auth-token";
-import { ROLE_HOME_SEGMENT } from "@/lib/auth/constants";
+import { resolveDashboardPath } from "@/lib/auth/role-routes";
 import type { AuthUser } from "@/types";
 
 export type LoginResult = {
@@ -22,6 +22,7 @@ function normalizeUser(raw: Record<string, unknown> | null | undefined): AuthUse
     id: String(raw.id ?? ""),
     email: String(raw.email ?? ""),
     role: String(raw.role ?? "").toUpperCase(),
+    role_slug: raw.role_slug ? String(raw.role_slug) : null,
     first_name: String(raw.first_name ?? ""),
     last_name: String(raw.last_name ?? ""),
     college_id: raw.college_id ? String(raw.college_id) : null,
@@ -179,9 +180,8 @@ export function hasPermission(user: AuthUser | null, module: string, action: str
   return true;
 }
 
-export function getDashboardPathForRole(role: string): string {
-  const segment = ROLE_HOME_SEGMENT[role] ?? ROLE_HOME_SEGMENT[role.toUpperCase()] ?? "student";
-  return `/dashboard/${segment}`;
+export function getDashboardPathForRole(role: string, roleSlug?: string | null): string {
+  return resolveDashboardPath(role, roleSlug);
 }
 
 export async function requestPasswordReset(email: string): Promise<string> {

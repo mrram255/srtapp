@@ -37,6 +37,10 @@ type DashboardStats = Record<string, number | string | undefined>;
 const titles: Record<string, string> = {
   admin: "Admin Dashboard",
   "super-admin": "Super Admin Dashboard",
+  principal: "Principal Dashboard",
+  registrar: "Registrar Dashboard",
+  accounts: "Accounts Dashboard",
+  admissions: "Admissions Dashboard",
   hod: "HOD Dashboard",
   accountant: "Accountant Dashboard",
   librarian: "Librarian Dashboard",
@@ -44,9 +48,15 @@ const titles: Record<string, string> = {
   parent: "Parent Dashboard",
 };
 
-export function AdminDashboard({ segment }: { segment: string }) {
+export function AdminDashboard({
+  segment,
+  titleOverride,
+}: {
+  segment: string;
+  titleOverride?: string;
+}) {
   const { user } = useAuthStore();
-  const heading = titles[segment] ?? `${segment.replace(/-/g, " ")} Dashboard`;
+  const heading = titleOverride ?? titles[segment] ?? `${segment.replace(/-/g, " ")} Dashboard`;
   const [stats, setStats] = useState<DashboardStats>({});
   const [loading, setLoading] = useState(true);
 

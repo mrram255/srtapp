@@ -263,6 +263,7 @@ export default function RegisterPage() {
                   <div onClick={() => photoFileRef.current?.click()}
                     className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-accent transition-colors overflow-hidden bg-gray-50">
                     {photoPreview
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       ? <img src={photoPreview} alt="Photo" className="w-full h-full object-cover" />
                       : <><Camera className="h-7 w-7 text-gray-400 mb-1" /><span className="text-xs text-gray-400">Click to upload</span></>}
                   </div>
@@ -287,6 +288,7 @@ export default function RegisterPage() {
                   <div onClick={() => signFileRef.current?.click()}
                     className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-accent transition-colors overflow-hidden bg-gray-50">
                     {signPreview
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       ? <img src={signPreview} alt="Signature" className="w-full h-full object-contain p-2" />
                       : <><Camera className="h-7 w-7 text-gray-400 mb-1" /><span className="text-xs text-gray-400">Click to upload</span></>}
                   </div>

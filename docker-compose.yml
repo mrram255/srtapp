@@ -117,7 +117,7 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             python manage.py runserver 0.0.0.0:8000"
+             python manage.py runserver 0.0.0.0:8000 --noreload"
 
   celery:
     build:
@@ -207,7 +207,7 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://backend:8000/api/v1
-      JWT_SECRET: ${JWT_SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
       NODE_ENV: development
     volumes:
       - ./frontend:/app

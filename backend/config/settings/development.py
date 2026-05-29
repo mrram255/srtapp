@@ -25,7 +25,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 # Debug toolbar
-INSTALLED_APPS += ['debug_toolbar', 'silk']
+INSTALLED_APPS += ['django_extensions', 'debug_toolbar', 'silk']
 MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', 'silk.middleware.SilkyMiddleware']
 INTERNAL_IPS = ['127.0.0.1']
 

@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.users.identity import User
 from apps.users.models import Module, ModulePermission, Role, UserActivity
 from apps.users.services import RoleService, UserService
-
-User = get_user_model()
 
 
 class ModuleSerializer(serializers.ModelSerializer):
@@ -107,6 +105,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
     masked_aadhaar = serializers.SerializerMethodField()
     masked_phone = serializers.SerializerMethodField()
     accessible_modules = serializers.SerializerMethodField()
+    permission_matrix = serializers.SerializerMethodField()
+    role_slug = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -144,6 +144,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'joined_at',
             'last_login',
             'accessible_modules',
+            'permission_matrix',
+            'role_slug',
             'created_at',
             'updated_at',
         ]
@@ -160,6 +162,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     def get_accessible_modules(self, obj):
         return UserService.get_accessible_modules(obj)
+
+    def get_role_slug(self, obj):
+        return obj.role_ref.name if obj.role_ref_id else None
+
+    def get_permission_matrix(self, obj):
+        if not obj.role_ref_id:
+            return []
+        return RoleService.get_role_permissions_matrix(obj.role_ref)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

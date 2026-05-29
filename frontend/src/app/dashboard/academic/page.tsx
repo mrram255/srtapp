@@ -8,11 +8,13 @@ type AcademicYear = { id: string; year: string; is_current: boolean };
 type Department = { id: string; name: string; code: string; program_count?: number };
 type Program = { id: string; name: string; code: string; department_name?: string };
 type Holiday = { id: string; date: string; name: string; holiday_type: string };
+type Subject = { id: string; name: string; code: string; semester_number: number };
 
 const TABS = [
   "Academic Years",
   "Departments",
   "Programs",
+  "Subjects",
   "Holidays",
   "Calendar",
 ] as const;
@@ -23,6 +25,8 @@ export default function AcademicConfigPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [importing, setImporting] = useState(false);
   const [calendar, setCalendar] = useState<{ holidays: Holiday[]; events: { title: string; start_date: string }[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,16 +35,18 @@ export default function AcademicConfigPage() {
     setLoading(true);
     setError("");
     try {
-      const [yRes, dRes, pRes, hRes] = await Promise.all([
+      const [yRes, dRes, pRes, hRes, sRes] = await Promise.all([
         api.get<ApiEnvelope<AcademicYear[]>>("/academic-years/?limit=20"),
         api.get<ApiEnvelope<Department[]>>("/departments/?limit=50"),
         api.get<ApiEnvelope<Program[]>>("/programs/?limit=50"),
         api.get<ApiEnvelope<Holiday[]>>("/holidays/?limit=50"),
+        api.get<ApiEnvelope<Subject[]>>("/subjects/?limit=50"),
       ]);
       setYears(yRes.data.data ?? []);
       setDepartments(dRes.data.data ?? []);
       setPrograms(pRes.data.data ?? []);
       setHolidays(hRes.data.data ?? []);
+      setSubjects(sRes.data.data ?? []);
       const currentYear = (yRes.data.data ?? []).find((y) => y.is_current);
       if (currentYear) {
         const calRes = await api.get<ApiEnvelope<{ holidays: Holiday[]; events: { title: string; start_date: string }[] }>>(
@@ -132,12 +138,73 @@ export default function AcademicConfigPage() {
       {tab === "Departments" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {departments.map((d) => (
-            <div key={d.id} className="rounded-xl border bg-white p-4 shadow-sm">
+            <a
+              key={d.id}
+              href={`/dashboard/academic/departments/${d.id}`}
+              className="rounded-xl border bg-white p-4 shadow-sm transition hover:border-indigo-300"
+            >
               <h3 className="font-semibold text-gray-900">{d.name}</h3>
               <p className="text-xs text-gray-500">{d.code}</p>
               <p className="mt-2 text-sm text-gray-600">{d.program_count ?? 0} programs</p>
-            </div>
+            </a>
           ))}
+        </div>
+      ) : null}
+
+      {tab === "Subjects" ? (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="/api/v1/subjects/import-template/"
+              className="rounded-lg border bg-white px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
+            >
+              Download template
+            </a>
+            <label className="cursor-pointer rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+              {importing ? "Importing…" : "Bulk import Excel"}
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setImporting(true);
+                  setError("");
+                  try {
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    await api.post("/subjects/bulk-import/", fd);
+                    await load();
+                  } catch (err) {
+                    setError(getApiErrorMessage(err, "Subject import failed."));
+                  } finally {
+                    setImporting(false);
+                  }
+                }}
+              />
+            </label>
+          </div>
+          <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="px-4 py-3">Subject</th>
+                  <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">Semester</th>
+                </tr>
+              </thead>
+              <tbody>
+                {subjects.map((s) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="px-4 py-3">{s.name}</td>
+                    <td className="px-4 py-3">{s.code}</td>
+                    <td className="px-4 py-3">{s.semester_number}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
 

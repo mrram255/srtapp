@@ -29,6 +29,7 @@ _V1_PREFIXES = (
     'events/',
     'reports/',
     'gate/',
+    'audit/',
 )
 
 
