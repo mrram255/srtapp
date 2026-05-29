@@ -227,6 +227,9 @@ class StudentSemesterRecord(TimeStampedModel):
     attendance_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
     promoted_to_next = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"Semester {self.semester_number} - {self.student}"
 
     class Meta:
         db_table = 'student_semester_records'
