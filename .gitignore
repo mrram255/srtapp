@@ -42,3 +42,5 @@ srtapp-backups/
 
 # Docker override secrets
 docker-compose.override.yml
+*.bak
+*.bak.*
